@@ -51,6 +51,9 @@ export const ui: Record<Lang, Record<string, string>> = {
     'cvpage.competences': 'Compétences',
     'cvpage.langues': 'Langues',
     'cvpage.interets': "Centres d'intérêt",
+    'introuvable.titre': 'Page introuvable',
+    'introuvable.texte': "Cette adresse n'existe pas ou a été déplacée.",
+    'introuvable.retour': "Retour à l'accueil",
   },
   en: {
     'nav.projets': 'Projects',
@@ -102,6 +105,9 @@ export const ui: Record<Lang, Record<string, string>> = {
     'cvpage.competences': 'Skills',
     'cvpage.langues': 'Languages',
     'cvpage.interets': 'Interests',
+    'introuvable.titre': 'Page not found',
+    'introuvable.texte': 'This address does not exist or has been moved.',
+    'introuvable.retour': 'Back to the home page',
   },
 };
 

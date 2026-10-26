@@ -10,7 +10,8 @@
     "check": "astro check",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "build:cv": "node scripts/build-cv.mjs"
+    "build:cv": "node scripts/build-cv.mjs",
+    "build:og": "node scripts/build-og.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.12",
