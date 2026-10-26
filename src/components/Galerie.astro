@@ -1,0 +1,324 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { Lang, Projet } from '../data/types';
+import { t } from '../i18n/ui';
+import { altCapture } from '../lib/galerie';
+import { capturesDuProjet } from '../lib/images';
+
+interface Props {
+  lang: Lang;
+  projet: Projet;
+}
+
+const { lang, projet } = Astro.props;
+
+const LARGEUR_VIGNETTE = 480;
+const LARGEUR_GRANDE = 1600;
+
+// Les captures arrivent dans l'ordre alphabétique des noms de fichiers ; la légende se cherche par nom de fichier.
+const captures = await Promise.all(
+  capturesDuProjet(projet.id).map(async ({ src, fichier }, index) => {
+    // Astro n'agrandit jamais une image : la grande version est au plus aussi large que l'original
+    const largeur = Math.min(LARGEUR_GRANDE, src.width);
+    const grande = await getImage({ src, width: LARGEUR_GRANDE, format: 'webp' });
+    return {
+      src,
+      grande: grande.src,
+      largeur,
+      hauteur: Math.round((largeur * src.height) / src.width),
+      alt: altCapture(projet.titre, index + 1, lang, projet.legendes?.[fichier]),
+    };
+  })
+);
+
+const plusieurs = captures.length > 1;
+---
+
+{
+  /* Sans image : ni titre, ni cadre vide, ni dialogue. */
+  captures.length > 0 && (
+    <section class="galerie" aria-labelledby="galerie-titre" data-galerie>
+      <h2 id="galerie-titre" class="titre-bloc">
+        {t(lang, 'projet.galerie')}
+      </h2>
+      {/* Chaque vignette est un lien vers l'image en grand : c'est ce qui sert sans JavaScript. */}
+      <ul class="vignettes">
+        {captures.map((capture) => (
+          <li>
+            <a
+              class="vignette"
+              href={capture.grande}
+              data-galerie-lien
+              data-largeur={capture.largeur}
+              data-hauteur={capture.hauteur}
+            >
+              <Image
+                src={capture.src}
+                alt={capture.alt}
+                width={LARGEUR_VIGNETTE}
+                format="webp"
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      {/* Fermé et vide d'affichage tant que le script ne l'ouvre pas ; l'image est paresseuse, donc pas chargée avant. */}
+      <dialog class="visionneuse" aria-label={t(lang, 'galerie.visionneuse')} data-galerie-dialog>
+        <button type="button" class="controle controle--fermer" data-galerie-fermer aria-label={t(lang, 'galerie.fermer')}>
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <figure class="scene" data-galerie-scene>
+          <img
+            class="grande"
+            src={captures[0].grande}
+            alt={captures[0].alt}
+            width={captures[0].largeur}
+            height={captures[0].hauteur}
+            loading="lazy"
+            decoding="async"
+            data-galerie-image
+          />
+        </figure>
+        {
+          plusieurs && (
+            <div class="barre">
+              <button type="button" class="controle" data-galerie-precedente aria-label={t(lang, 'galerie.precedente')}>
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+                  <path d="M15 5l-7 7 7 7" />
+                </svg>
+              </button>
+              <p class="compteur" aria-live="polite" data-galerie-compteur>
+                1 / {captures.length}
+              </p>
+              <button type="button" class="controle" data-galerie-suivante aria-label={t(lang, 'galerie.suivante')}>
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )
+        }
+      </dialog>
+    </section>
+  )
+}
+
+<style>
+  .galerie {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .vignettes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .vignette {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .vignette:hover {
+    border-color: var(--accent);
+  }
+
+  .vignette :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Le dialogue n'est affiché que lorsqu'il est ouvert : ne jamais lui poser de `display` hors de [open] */
+  .visionneuse[open] {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(5 8 12 / 0.94);
+    color: var(--text);
+  }
+
+  .visionneuse::backdrop {
+    background: rgb(5 8 12 / 0.94);
+  }
+
+  .scene {
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    margin: 0;
+    padding: 0 16px;
+  }
+
+  .grande {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+  }
+
+  .barre {
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px 16px 16px;
+  }
+
+  .compteur {
+    min-width: 5ch;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-2);
+  }
+
+  .controle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .controle:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+  }
+
+  .controle svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .controle--fermer {
+    grid-row: 1;
+    justify-self: end;
+    margin: 12px 16px 8px;
+  }
+
+  /* Le défilement de la page est bloqué tant que la visionneuse est ouverte */
+  :global(html:has(.visionneuse[open])) {
+    overflow: hidden;
+  }
+
+  /* Apparition en fondu, coupée si l'utilisateur réduit les animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .visionneuse[open] {
+      animation: apparition 0.18s ease-out;
+    }
+
+    @keyframes apparition {
+      from {
+        opacity: 0;
+      }
+    }
+  }
+</style>
+
+<script>
+  for (const galerie of document.querySelectorAll<HTMLElement>('[data-galerie]')) {
+    const dialogue = galerie.querySelector<HTMLDialogElement>('[data-galerie-dialog]');
+    const image = galerie.querySelector<HTMLImageElement>('[data-galerie-image]');
+    const scene = galerie.querySelector<HTMLElement>('[data-galerie-scene]');
+    const compteur = galerie.querySelector<HTMLElement>('[data-galerie-compteur]');
+    const liens = Array.from(galerie.querySelectorAll<HTMLAnchorElement>('a[data-galerie-lien]'));
+
+    if (!dialogue || !image || !scene || liens.length === 0) continue;
+
+    let courant = 0;
+    let ouvreur: HTMLAnchorElement | null = null;
+
+    const afficher = (index: number) => {
+      courant = (index + liens.length) % liens.length;
+      const lien = liens[courant];
+      image.src = lien.href;
+      image.alt = lien.querySelector('img')?.alt ?? '';
+      image.width = Number(lien.dataset.largeur) || image.width;
+      image.height = Number(lien.dataset.hauteur) || image.height;
+      if (compteur) compteur.textContent = `${courant + 1} / ${liens.length}`;
+    };
+
+    const aller = (pas: number) => {
+      if (liens.length > 1) afficher(courant + pas);
+    };
+
+    liens.forEach((lien, index) => {
+      lien.addEventListener('click', (evenement) => {
+        // Ctrl, Maj, clic du milieu... gardent le comportement du lien (nouvel onglet)
+        if (evenement.button !== 0 || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey) {
+          return;
+        }
+        evenement.preventDefault();
+        ouvreur = lien;
+        afficher(index);
+        dialogue.showModal();
+      });
+    });
+
+    galerie.querySelector('[data-galerie-precedente]')?.addEventListener('click', () => aller(-1));
+    galerie.querySelector('[data-galerie-suivante]')?.addEventListener('click', () => aller(1));
+    galerie.querySelector('[data-galerie-fermer]')?.addEventListener('click', () => dialogue.close());
+
+    dialogue.addEventListener('keydown', (evenement) => {
+      if (evenement.altKey || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey) return;
+      if (evenement.key === 'ArrowLeft') {
+        evenement.preventDefault();
+        aller(-1);
+      } else if (evenement.key === 'ArrowRight') {
+        evenement.preventDefault();
+        aller(1);
+      }
+    });
+
+    // Le dialogue occupe tout l'écran : un clic hors de l'image et des boutons est un clic sur le fond
+    dialogue.addEventListener('click', (evenement) => {
+      if (evenement.target === dialogue || evenement.target === scene) dialogue.close();
+    });
+
+    // Échap ferme nativement ; le focus revient au lien qui a ouvert la visionneuse (même sans focus au clic, comme sur Safari)
+    dialogue.addEventListener('close', () => {
+      ouvreur?.focus({ preventScroll: true });
+    });
+  }
+</script>

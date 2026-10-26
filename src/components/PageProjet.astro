@@ -1,0 +1,226 @@
+---
+import type { Lang, Projet } from '../data/types';
+import { t } from '../i18n/ui';
+import { homePath, projectPath } from '../lib/routes';
+import { voisins } from '../lib/projets';
+import Galerie from './Galerie.astro';
+
+interface Props {
+  lang: Lang;
+  projet: Projet;
+}
+
+const { lang, projet } = Astro.props;
+
+const stack = projet.stack.join(' · ');
+const libelleDemo = t(lang, projet.categorie === 'jeu' ? 'projets.jouer' : 'projets.voirSite');
+const { prev, next } = voisins(projet.id);
+const autres = [
+  { sens: 'prev', projet: prev, cle: 'projet.precedent', fleche: '←' },
+  { sens: 'next', projet: next, cle: 'projet.suivant', fleche: '→' },
+] as const;
+---
+
+<article class="container projet">
+  <a class="retour" href={`${homePath(lang)}#projets`} data-projet-retour>
+    <span aria-hidden="true">←</span>{' '}{t(lang, 'projet.retour')}
+  </a>
+
+  <header class="entete">
+    <h1>{projet.titre}</h1>
+    {projet.badge && <span class="badge">{projet.badge[lang]}</span>}
+    <p class="stack">{stack}</p>
+    <div class="actions">
+      {
+        projet.liens.demo && (
+          <a class="bouton bouton--primaire" href={projet.liens.demo} rel="noopener noreferrer">
+            {libelleDemo}
+          </a>
+        )
+      }
+      <a class="bouton bouton--secondaire" href={projet.liens.code} rel="noopener noreferrer">
+        {t(lang, 'projets.code')}
+      </a>
+    </div>
+  </header>
+
+  <section class="bloc" aria-labelledby="presentation-titre">
+    <h2 id="presentation-titre" class="titre-bloc">{t(lang, 'projet.presentation')}</h2>
+    <div class="texte">
+      {projet.description[lang].map((paragraphe) => <p>{paragraphe}</p>)}
+    </div>
+  </section>
+
+  <section class="bloc" aria-labelledby="points-titre">
+    <h2 id="points-titre" class="titre-bloc">{t(lang, 'projet.points')}</h2>
+    <ul class="points">
+      {projet.points[lang].map((point) => <li>{point}</li>)}
+    </ul>
+  </section>
+
+  <Galerie lang={lang} projet={projet} />
+
+  <nav class="voisins" aria-label={t(lang, 'projet.autres')}>
+    {
+      autres.map(({ sens, projet: voisin, cle, fleche }) => (
+        <a class={`voisin voisin--${sens}`} href={projectPath(lang, voisin.id)} data-voisin={sens}>
+          <span class="voisin-sens">
+            {sens === 'prev' && <span aria-hidden="true">{fleche} </span>}
+            {t(lang, cle)}
+            {sens === 'next' && <span aria-hidden="true"> {fleche}</span>}
+          </span>
+          <span class="voisin-titre">{voisin.titre}</span>
+        </a>
+      ))
+    }
+  </nav>
+</article>
+
+<style>
+  .projet {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding-top: 24px;
+    padding-bottom: 72px;
+  }
+
+  .retour {
+    align-self: flex-start;
+    /* Cible tactile de 44 px au moins : une ligne de 44 px */
+    line-height: var(--target);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .retour:hover {
+    color: var(--accent-hover);
+  }
+
+  .entete {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    /* Le lien de retour est déjà à 24 px au-dessus : on resserre l'écart avec le titre */
+    margin-top: -24px;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    background: var(--accent-soft);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent-hover);
+  }
+
+  .stack {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .texte {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 72ch;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text-2);
+  }
+
+  .texte p {
+    margin: 0;
+  }
+
+  .points {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 72ch;
+    margin: 0;
+    padding-left: 22px;
+    color: var(--text-2);
+  }
+
+  .points li::marker {
+    color: var(--accent);
+  }
+
+  .voisins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .voisin {
+    flex: 1 1 280px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-height: var(--target);
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+
+  .voisin:hover {
+    border-color: var(--accent);
+  }
+
+  .voisin--next {
+    text-align: right;
+  }
+
+  .voisin-sens {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .voisin-titre {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .voisin:hover .voisin-titre {
+    color: var(--accent-hover);
+  }
+</style>

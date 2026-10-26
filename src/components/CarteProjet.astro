@@ -1,9 +1,8 @@
 ---
-import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 import type { Lang, Projet } from '../data/types';
 import { t } from '../i18n/ui';
-import { selectionnerImages } from '../lib/galerie';
+import { imagesDuProjet } from '../lib/images';
 import { projectPath } from '../lib/routes';
 
 interface Props {
@@ -13,13 +12,8 @@ interface Props {
 
 const { projet, lang } = Astro.props;
 
-// Les images sont déposées dans src/assets/projets/<id>/ ; tant qu'il n'y en a pas, la recherche ne renvoie rien.
-const images = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/projets/*/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG,WEBP}',
-  { eager: true }
-);
-const [premiere] = selectionnerImages(Object.keys(images), projet.id);
-const vignette = premiere ? images[premiere].default : undefined;
+// La première image du projet sert de vignette ; sans image, la carte reste purement typographique.
+const [vignette] = imagesDuProjet(projet.id);
 
 const pageProjet = projectPath(lang, projet.id);
 const libelleDemo = t(lang, projet.categorie === 'jeu' ? 'projets.jouer' : 'projets.voirSite');
@@ -76,11 +70,6 @@ const stack = projet.stack.join(' · ');
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-  }
-
-  /* display: flex ci-dessus l'emporterait sur le masquage du navigateur */
-  .carte-projet[hidden] {
-    display: none;
   }
 
   /* Cartes en vedette : larges, deux par ligne sur ordinateur */

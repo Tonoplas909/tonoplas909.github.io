@@ -124,12 +124,20 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
     ]);
   });
 
-  test('garde les cartes sans vignette purement typographiques (aucune image cassée)', async ({
+  test('n’affiche une vignette que sur la carte du projet qui a une capture (Pit Wall)', async ({
     page,
   }) => {
     await page.goto('/');
 
-    await expect(page.locator(`${CARTES} img`)).toHaveCount(0);
+    const vignette = page.locator('[data-projet-id="pit-wall"] img');
+    await expect(vignette).toHaveCount(1);
+    await vignette.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => vignette.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true);
+
+    // Les 7 autres cartes restent purement typographiques : aucune image, donc aucune image cassée
+    await expect(page.locator(`${CARTES}:not([data-projet-id="pit-wall"]) img`)).toHaveCount(0);
   });
 });
 

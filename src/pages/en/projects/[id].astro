@@ -1,0 +1,23 @@
+---
+import PageProjet from '../../../components/PageProjet.astro';
+import { profil } from '../../../data/profil';
+import { projets } from '../../../data/projets';
+import Base from '../../../layouts/Base.astro';
+import { imagePartage } from '../../../lib/images';
+
+export function getStaticPaths() {
+  return projets.map((projet) => ({ params: { id: projet.id }, props: { projet } }));
+}
+
+const lang = 'en';
+const { projet } = Astro.props;
+---
+
+<Base
+  lang={lang}
+  title={`${projet.titre} — ${profil.nom}`}
+  description={projet.resume[lang]}
+  image={await imagePartage(projet.id)}
+>
+  <PageProjet lang={lang} projet={projet} />
+</Base>
