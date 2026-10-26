@@ -67,7 +67,7 @@ test.describe('accueil français (/)', () => {
 
     // Langue active : FR. Lien vers l'autre langue : EN, avec un nom accessible explicite.
     await expect(entete.locator('[aria-current="true"]')).toHaveText('FR');
-    const versEn = entete.getByRole('link', { name: 'Voir le site en anglais' });
+    const versEn = entete.getByRole('link', { name: 'EN — Voir le site en anglais', exact: true });
     await expect(versEn).toHaveText('EN');
     await expect(versEn).toHaveAttribute('href', '/en/');
   });
@@ -156,7 +156,7 @@ test.describe('accueil anglais (/en/)', () => {
       'href',
       `${SITE}/`,
     );
-    const versFr = page.locator('header').getByRole('link', { name: 'View the site in French' });
+    const versFr = page.locator('header').getByRole('link', { name: 'FR — View the site in French', exact: true });
     await expect(versFr).toHaveText('FR');
     await expect(versFr).toHaveAttribute('href', '/');
   });

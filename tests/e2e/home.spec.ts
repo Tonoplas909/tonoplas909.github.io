@@ -13,11 +13,11 @@ test.describe('accueil avec JavaScript', () => {
     await page.goto('/');
     const entete = page.locator('header');
 
-    await entete.getByRole('link', { name: 'Voir le site en anglais' }).click();
+    await entete.getByRole('link', { name: 'EN — Voir le site en anglais', exact: true }).click();
     await expect(page).toHaveURL('/en/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 
-    await entete.getByRole('link', { name: 'View the site in French' }).click();
+    await entete.getByRole('link', { name: 'FR — View the site in French', exact: true }).click();
     await expect(page).toHaveURL('/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });

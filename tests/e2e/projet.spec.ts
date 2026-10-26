@@ -93,7 +93,7 @@ test.describe('pages projet', () => {
   }) => {
     for (const id of ['volley-club', 'cafet-miage']) {
       await page.goto(`/projets/${id}/`);
-      // Le lien du sélecteur de langue s'appelle « Voir le site en anglais » : on ne regarde que le contenu de la page
+      // Le lien du sélecteur de langue s'appelle « EN — Voir le site en anglais » : on ne regarde que le contenu de la page
       const principal = page.locator('main');
 
       await expect(principal.getByRole('link', { name: /Jouer|Voir le site/ }), id).toHaveCount(0);
@@ -148,12 +148,12 @@ test.describe('pages projet', () => {
     await page.goto('/en/projects/pit-wall/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(
-      page.locator('header').getByRole('link', { name: 'View the site in French' })
+      page.locator('header').getByRole('link', { name: 'FR — View the site in French', exact: true })
     ).toHaveAttribute('href', '/projets/pit-wall/');
 
     await page.goto('/projets/pit-wall/');
     await expect(
-      page.locator('header').getByRole('link', { name: 'Voir le site en anglais' })
+      page.locator('header').getByRole('link', { name: 'EN — Voir le site en anglais', exact: true })
     ).toHaveAttribute('href', '/en/projects/pit-wall/');
   });
 

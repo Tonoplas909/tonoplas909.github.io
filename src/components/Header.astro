@@ -20,6 +20,8 @@ const liens = [
   { cle: 'nav.contact', href: `${prefixe}#contact` },
 ];
 
+// Le nom accessible du lien vers l'autre langue commence par le texte visible (« EN », « FR ») :
+// sans cela, un utilisateur de commande vocale qui dit « cliquer EN » ne l'atteint pas (WCAG 2.5.3).
 const langues: { code: Lang; libelle: string }[] = [
   { code: 'fr', libelle: 'FR' },
   { code: 'en', libelle: 'EN' },
@@ -42,7 +44,7 @@ const langues: { code: Lang; libelle: string }[] = [
               class="langue"
               href={equivalentPath(pathname, code)}
               hreflang={code}
-              aria-label={t(lang, 'lang.switch')}
+              aria-label={`${libelle} — ${t(lang, 'lang.switch')}`}
             >
               {libelle}
             </a>
