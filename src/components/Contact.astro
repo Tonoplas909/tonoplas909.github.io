@@ -25,3 +25,27 @@ const { local, domain } = profil.email;
     lien.textContent = adresse;
   });
 </script>
+
+<style>
+  /* Le lien porte son propre style : il rend pareil dans le pied de page et sur la page CV */
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--accent-hover);
+  }
+
+  /* À l'impression : texte sombre souligné, sans hauteur de cible tactile */
+  @media print {
+    a {
+      min-height: 0;
+      color: inherit;
+      text-decoration: underline;
+    }
+  }
+</style>

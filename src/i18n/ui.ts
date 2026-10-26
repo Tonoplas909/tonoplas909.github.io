@@ -42,21 +42,30 @@ export const ui: Record<Lang, Record<string, string>> = {
     'cv.texte': 'Version française et anglaise, à jour avec ce site.',
     'cv.fr': 'CV en français (PDF)',
     'cv.en': 'CV in English (PDF)',
+    'cvpage.titre': 'CV — Matis Demore',
+    'cvpage.description':
+      'CV de Matis Demore, développeur fullstack en M1 MIAGE (parcours NumRes) à Sophia-Antipolis : profil, compétences, parcours et projets sur une page.',
+    'cvpage.profil': 'Profil',
+    'cvpage.profil.texte':
+      "Développeur fullstack, en Master 1 MIAGE (parcours NumRes) à Sophia-Antipolis, en alternance chez Eng'IT. J'ai appris le métier en alternance, du back-end Python au fullstack Vue.js et Angular, et je construis à côté des applications web et des jeux 3D dans le navigateur.",
+    'cvpage.competences': 'Compétences',
+    'cvpage.langues': 'Langues',
+    'cvpage.interets': "Centres d'intérêt",
   },
   en: {
     'nav.projets': 'Projects',
     'nav.parcours': 'Background',
-    'nav.cv': 'Résumé',
+    'nav.cv': 'CV',
     'nav.contact': 'Contact',
     'lang.switch': 'View the site in French',
     'accueil.titre': 'Matis Demore · Full-stack developer',
     'accueil.description':
-      "Portfolio and résumé of Matis Demore, full-stack developer in the first year of the MIAGE master's (NumRes track) in Sophia-Antipolis: web applications and 3D games in the browser.",
+      "Portfolio and CV of Matis Demore, full-stack developer in the first year of the MIAGE master's (NumRes track) in Sophia-Antipolis: web applications and 3D games in the browser.",
     'hero.statut': 'M1 MIAGE · NumRes track · Sophia-Antipolis',
     'hero.accroche':
       'Full-stack developer. I build web applications, from the API to the interface, and 3D games that run in the browser.',
     'hero.voirProjets': 'See the projects',
-    'hero.telechargerCv': 'Download the résumé (PDF)',
+    'hero.telechargerCv': 'Download the CV (PDF)',
     'competences.titre': '// skills',
     'projets.titre': 'Projects',
     'projets.filtre.label': 'Filter projects by category',
@@ -80,10 +89,19 @@ export const ui: Record<Lang, Record<string, string>> = {
     'galerie.suivante': 'Next screenshot',
     'galerie.fermer': 'Close the viewer',
     'parcours.titre': 'Background',
-    'cv.titre': 'My résumé, on one page',
+    'cv.titre': 'My CV, on one page',
     'cv.texte': 'French and English versions, kept up to date with this site.',
-    'cv.fr': 'Résumé in French (PDF)',
-    'cv.en': 'Résumé in English (PDF)',
+    'cv.fr': 'CV in French (PDF)',
+    'cv.en': 'CV in English (PDF)',
+    'cvpage.titre': 'CV — Matis Demore',
+    'cvpage.description':
+      "CV of Matis Demore, full-stack developer in the first year of the MIAGE master's (NumRes track) in Sophia-Antipolis: profile, skills, background and projects on one page.",
+    'cvpage.profil': 'Profile',
+    'cvpage.profil.texte':
+      "Full-stack developer, in the first year of the MIAGE master's (NumRes track) in Sophia-Antipolis, on a work-study placement at Eng'IT. I learned the trade through work-study placements, from Python back-end to full-stack Vue.js and Angular, and on the side I build web applications and 3D games in the browser.",
+    'cvpage.competences': 'Skills',
+    'cvpage.langues': 'Languages',
+    'cvpage.interets': 'Interests',
   },
 };
 

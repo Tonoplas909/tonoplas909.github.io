@@ -1,0 +1,11 @@
+---
+import CvPage from '../components/CvPage.astro';
+import { t } from '../i18n/ui';
+import Base from '../layouts/Base.astro';
+
+const lang = 'fr';
+---
+
+<Base lang={lang} title={t(lang, 'cvpage.titre')} description={t(lang, 'cvpage.description')}>
+  <CvPage lang={lang} />
+</Base>

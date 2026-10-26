@@ -1,0 +1,189 @@
+/* Impression des pages CV (spec §6.3) : document A4 clair, sur une seule page.
+   Chargée par CvPage.astro uniquement, donc absente du reste du site. */
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  /* `:root` (et non `html`) pour passer devant le `color-scheme: dark` du thème : cette feuille
+     se charge avant global.css. Sans cela, la marge de la page PDF est peinte en gris sombre. */
+  :root {
+    color-scheme: light;
+    background: #fff;
+  }
+
+  /* `html body` pour passer devant le `body` du thème sombre, quel que soit l'ordre des feuilles */
+  html body {
+    display: block;
+    min-height: 0;
+    background: #fff;
+    color: #0f1b2d;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+
+  /* En-tête (navigation et sélecteur de langue) et pied de page : !important pour passer devant
+     le `display` posé par leurs styles de composant */
+  body > header,
+  body > footer {
+    display: none !important;
+  }
+
+  main {
+    display: block;
+  }
+
+  .cv {
+    display: block;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .cv a {
+    color: #0f1b2d;
+    text-decoration: underline;
+  }
+
+  /* En-tête du CV */
+  .cv-nom {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 22pt;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .cv-intitule {
+    margin: 2pt 0 0;
+    font-family: var(--font-mono);
+    font-size: 11pt;
+    font-weight: 500;
+  }
+
+  .cv-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6pt;
+    margin: 4pt 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+  }
+
+  .cv-contact li + li::before {
+    content: '·';
+    margin-right: 6pt;
+  }
+
+  /* Rubriques */
+  .cv-section {
+    margin-top: 12pt;
+    break-inside: avoid;
+  }
+
+  .cv-titre {
+    margin: 0 0 5pt;
+    padding-bottom: 2pt;
+    border-bottom: 0.5pt solid #0f1b2d;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    break-after: avoid;
+  }
+
+  .cv-profil,
+  .cv-texte {
+    margin: 0;
+  }
+
+  /* Compétences : petites étiquettes sur une ou deux lignes */
+  .cv-competences {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3pt 4pt;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cv-competence {
+    padding: 0 5pt;
+    border: 0.5pt solid #52627a;
+    border-radius: 3pt;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+  }
+
+  /* Parcours : période à gauche, intitulé et détail à droite ; jamais coupé au milieu d'une entrée */
+  .cv-parcours {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cv-entree {
+    display: grid;
+    grid-template-columns: 30mm 1fr;
+    gap: 0 4mm;
+    padding: 3pt 0;
+    break-inside: avoid;
+  }
+
+  .cv-periode {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    color: #3d4c63;
+  }
+
+  .cv-poste {
+    font-weight: 600;
+  }
+
+  .cv-detail {
+    color: #3d4c63;
+  }
+
+  /* Les stages tiennent sur une ligne : période · intitulé — détail */
+  .cv-entree--compacte {
+    display: block;
+    color: #3d4c63;
+  }
+
+  .cv-entree--compacte .cv-poste {
+    font-weight: 500;
+    color: #0f1b2d;
+  }
+
+  /* Projets : une ligne chacun */
+  .cv-projets {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cv-projet {
+    padding: 2pt 0;
+    break-inside: avoid;
+  }
+
+  .cv-pile {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    color: #3d4c63;
+  }
+
+  /* Langues et centres d'intérêt côte à côte */
+  .cv-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 8mm;
+  }
+}

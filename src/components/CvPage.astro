@@ -1,0 +1,278 @@
+---
+// Contenu du CV (spec §6.3), partagé par /cv/ et /en/cv/. À l'écran, la page garde le thème sombre
+// du site ; seule la feuille print.css la passe en document A4 clair.
+import '../styles/print.css';
+import { competences } from '../data/competences';
+import { parcours } from '../data/parcours';
+import { profil } from '../data/profil';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { formatPeriode, trierParcours } from '../lib/parcours';
+import { projetParId } from '../lib/projets';
+import Contact from './Contact.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+// Les trois projets mis en avant sur le CV, un par ligne
+const projetsCv = ['cafet-miage', 'drift-club', 'rallye-club'].map(projetParId);
+
+// Adresse affichée d'un lien, sans protocole, « www. » ni barre finale : « github.com/Tonoplas909 »
+function adresseCourte(url: string): string {
+  const { host, pathname } = new URL(url);
+  return `${host.replace(/^www\./, '')}${pathname}`.replace(/\/$/, '');
+}
+
+const entrees = trierParcours(parcours).map((entree) => ({
+  id: entree.id,
+  compact: entree.type === 'stage',
+  periode: formatPeriode(entree, lang),
+  titre: entree.titre[lang],
+  detail: entree.detail?.[lang],
+}));
+---
+
+<article class="cv">
+  <div class="cv-entete">
+    <h1 class="cv-nom">{profil.nom}</h1>
+    <p class="cv-intitule">{profil.intitule[lang]}</p>
+    <ul class="cv-contact">
+      <li><Contact lang={lang} /></li>
+      <li>
+        <a href={profil.liens.github} rel="noopener noreferrer">{adresseCourte(profil.liens.github)}</a>
+      </li>
+      <li>
+        <a href={profil.liens.linkedin} rel="noopener noreferrer">{adresseCourte(profil.liens.linkedin)}</a>
+      </li>
+    </ul>
+  </div>
+
+  <section class="cv-section" aria-labelledby="cv-profil">
+    <h2 id="cv-profil" class="cv-titre">{t(lang, 'cvpage.profil')}</h2>
+    <p class="cv-profil">{t(lang, 'cvpage.profil.texte')}</p>
+  </section>
+
+  <section class="cv-section" aria-labelledby="cv-competences">
+    <h2 id="cv-competences" class="cv-titre">{t(lang, 'cvpage.competences')}</h2>
+    <ul class="cv-competences">
+      {competences.map((competence) => <li class="cv-competence">{competence}</li>)}
+    </ul>
+  </section>
+
+  <section class="cv-section" aria-labelledby="cv-parcours">
+    <h2 id="cv-parcours" class="cv-titre">{t(lang, 'parcours.titre')}</h2>
+    <ol class="cv-parcours">
+      {
+        entrees.map((entree) =>
+          entree.compact ? (
+            <li class="cv-entree cv-entree--compacte">
+              <span class="cv-periode">{entree.periode}</span> · <span class="cv-poste">{entree.titre}</span>
+              {entree.detail && <> — <span class="cv-detail">{entree.detail}</span></>}
+            </li>
+          ) : (
+            <li class="cv-entree">
+              <div class="cv-periode">{entree.periode}</div>
+              <div class="cv-contenu">
+                <div class="cv-poste">{entree.titre}</div>
+                {entree.detail && <div class="cv-detail">{entree.detail}</div>}
+              </div>
+            </li>
+          )
+        )
+      }
+    </ol>
+  </section>
+
+  <section class="cv-section" aria-labelledby="cv-projets">
+    <h2 id="cv-projets" class="cv-titre">{t(lang, 'projets.titre')}</h2>
+    <ul class="cv-projets">
+      {
+        projetsCv.map((projet) => (
+          <li class="cv-projet"><strong class="cv-projet-titre">{projet.titre}</strong> — <span class="cv-pile">{projet.stack.join(' · ')}</span></li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="cv-duo">
+    <section class="cv-section" aria-labelledby="cv-langues">
+      <h2 id="cv-langues" class="cv-titre">{t(lang, 'cvpage.langues')}</h2>
+      <p class="cv-texte">{profil.langues[lang].join(', ')}</p>
+    </section>
+    <section class="cv-section" aria-labelledby="cv-interets">
+      <h2 id="cv-interets" class="cv-titre">{t(lang, 'cvpage.interets')}</h2>
+      <p class="cv-texte">{profil.interets[lang].join(', ')}</p>
+    </section>
+  </div>
+</article>
+
+<style>
+  /* Styles d'écran uniquement : l'impression est entièrement réglée par styles/print.css */
+  @media screen {
+    .cv {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      width: 100%;
+      max-width: 880px;
+      margin-inline: auto;
+      padding: 48px var(--gutter) 72px;
+    }
+
+    .cv-nom {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .cv-intitule {
+      margin: 12px 0 0;
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: var(--text-2);
+    }
+
+    .cv-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 24px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .cv-contact a {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--target);
+      color: var(--accent);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .cv-contact a:hover {
+      color: var(--accent-hover);
+    }
+
+    .cv-titre {
+      margin: 0 0 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .cv-profil,
+    .cv-texte {
+      margin: 0;
+      color: var(--text-2);
+    }
+
+    .cv-profil {
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .cv-competences {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .cv-competence {
+      padding: 8px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .cv-parcours {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .cv-entree {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 32px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cv-periode {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .cv-entree:not(.cv-entree--compacte) .cv-periode {
+      flex: 0 0 160px;
+    }
+
+    .cv-contenu {
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+
+    .cv-poste {
+      font-weight: 600;
+    }
+
+    .cv-detail {
+      color: var(--text-2);
+    }
+
+    /* Les stages tiennent sur une ligne : période · intitulé — détail */
+    .cv-entree--compacte {
+      display: block;
+      padding: 12px 0;
+      color: var(--text-2);
+    }
+
+    .cv-entree--compacte .cv-poste {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .cv-projets {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--text-2);
+    }
+
+    .cv-projet-titre {
+      color: var(--text);
+    }
+
+    .cv-pile {
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .cv-duo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px 64px;
+    }
+  }
+</style>
