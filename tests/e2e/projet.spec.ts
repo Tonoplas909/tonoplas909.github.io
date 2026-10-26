@@ -44,9 +44,11 @@ function motifImagePartage(nomCapture: string): RegExp {
   return new RegExp(`^https://tonoplas909\\.github\\.io/_astro/${sure}${sure === base ? '\\.' : ''}`);
 }
 
+/** La première image désignée par le sélecteur est chargée (une galerie en montre souvent plusieurs). */
 async function imageChargee(page: Page, selecteur: string): Promise<boolean> {
   return page
     .locator(selecteur)
+    .first()
     .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
 }
 
