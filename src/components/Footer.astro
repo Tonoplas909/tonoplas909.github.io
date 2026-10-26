@@ -2,6 +2,7 @@
 import { profil } from '../data/profil';
 import type { Lang } from '../data/types';
 import { t } from '../i18n/ui';
+import Contact from './Contact.astro';
 
 interface Props {
   lang: Lang;
@@ -13,7 +14,7 @@ const { lang } = Astro.props;
 <footer id="contact" class="container site-footer" aria-label={t(lang, 'nav.contact')}>
   <span class="invite" aria-hidden="true">$ contact --matis</span>
   <div class="liens">
-    {/* TÂCHE 5 : monter ici le composant de contact par e-mail (l'adresse n'est jamais rendue en clair par le pied de page) */}
+    <Contact lang={lang} />
     <a href={profil.liens.github} rel="noopener noreferrer">GitHub</a>
     <a href={profil.liens.linkedin} rel="noopener noreferrer">LinkedIn</a>
   </div>

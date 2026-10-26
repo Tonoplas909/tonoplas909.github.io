@@ -1,0 +1,79 @@
+---
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+// Le PDF de la langue courante passe en premier, en bouton principal
+const pdf = {
+  fr: { href: '/Matis-Demore-CV.pdf', cle: 'cv.fr' },
+  en: { href: '/Matis-Demore-CV-EN.pdf', cle: 'cv.en' },
+};
+const boutons = lang === 'fr' ? [pdf.fr, pdf.en] : [pdf.en, pdf.fr];
+---
+
+<section id="cv" class="container bloc-cv" aria-labelledby="cv-titre">
+  <div class="carte">
+    <div class="texte">
+      <h2 id="cv-titre" class="titre">{t(lang, 'cv.titre')}</h2>
+      <p class="phrase">{t(lang, 'cv.texte')}</p>
+    </div>
+    <div class="actions">
+      {
+        boutons.map((bouton, i) => (
+          <a
+            class:list={['bouton', i === 0 ? 'bouton--primaire' : 'bouton--secondaire']}
+            href={bouton.href}
+          >
+            {t(lang, bouton.cle)}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .bloc-cv {
+    padding-bottom: 72px;
+  }
+
+  .carte {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px 32px;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .texte {
+    flex: 1 1 360px;
+    min-width: 0;
+  }
+
+  .titre {
+    margin: 0 0 6px;
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .phrase {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>

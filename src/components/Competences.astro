@@ -1,0 +1,53 @@
+---
+import { competences } from '../data/competences';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<section class="container competences" aria-labelledby="competences-titre">
+  <h2 id="competences-titre" class="etiquette">{t(lang, 'competences.titre')}</h2>
+  <ul class="puces">
+    {competences.map((competence) => <li class="puce">{competence}</li>)}
+  </ul>
+</section>
+
+<style>
+  .competences {
+    padding-top: 8px;
+    padding-bottom: 56px;
+  }
+
+  .etiquette {
+    margin: 0 0 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .puces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .puce {
+    padding: 8px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text);
+  }
+</style>

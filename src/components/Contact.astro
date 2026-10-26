@@ -1,0 +1,27 @@
+---
+import { profil } from '../data/profil';
+import type { Lang } from '../data/types';
+import { spellEmail } from '../lib/email';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { local, domain } = profil.email;
+---
+
+{/* L'adresse complète n'est jamais dans le HTML : sans JavaScript, la version épelée s'affiche (sans href, ce n'est pas un lien). Le script ci-dessous assemble le lien mailto: au chargement. */}
+<a data-email data-local={local} data-domain={domain}>{spellEmail(profil.email, lang)}</a>
+
+<script>
+  import { assembleEmail } from '../lib/email';
+
+  document.querySelectorAll<HTMLAnchorElement>('a[data-email]').forEach((lien) => {
+    const { local, domain } = lien.dataset;
+    if (!local || !domain) return;
+    const adresse = assembleEmail({ local, domain });
+    lien.href = `mailto:${adresse}`;
+    lien.textContent = adresse;
+  });
+</script>

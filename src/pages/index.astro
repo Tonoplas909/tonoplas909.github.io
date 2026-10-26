@@ -1,13 +1,11 @@
 ---
+import Accueil from '../components/Accueil.astro';
+import { t } from '../i18n/ui';
 import Base from '../layouts/Base.astro';
+
+const lang = 'fr';
 ---
 
-<Base
-  lang="fr"
-  title="Matis Demore · Développeur fullstack"
-  description="Portfolio et CV de Matis Demore, développeur fullstack en M1 MIAGE (parcours NumRes) à Sophia-Antipolis : applications web et jeux 3D dans le navigateur."
->
-  <div class="container">
-    <h1>Matis Demore</h1>
-  </div>
+<Base lang={lang} title={t(lang, 'accueil.titre')} description={t(lang, 'accueil.description')}>
+  <Accueil lang={lang} />
 </Base>

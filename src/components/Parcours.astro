@@ -1,0 +1,100 @@
+---
+import { parcours } from '../data/parcours';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { formatPeriode, trierParcours } from '../lib/parcours';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const entrees = trierParcours(parcours).map((entree) => ({
+  id: entree.id,
+  compact: entree.type === 'stage',
+  periode: formatPeriode(entree, lang),
+  titre: entree.titre[lang],
+  detail: entree.detail?.[lang],
+}));
+---
+
+<section id="parcours" class="container parcours" aria-labelledby="parcours-titre">
+  <h2 id="parcours-titre" class="titre-section">{t(lang, 'parcours.titre')}</h2>
+  <ol class="liste">
+    {
+      entrees.map((entree) =>
+        entree.compact ? (
+          <li class="entree entree--compacte">
+            <span class="periode">{entree.periode}</span> · <span class="titre">{entree.titre}</span>
+            {entree.detail && <> — <span class="detail">{entree.detail}</span></>}
+          </li>
+        ) : (
+          <li class="entree">
+            <div class="periode">{entree.periode}</div>
+            <div class="contenu">
+              <div class="titre">{entree.titre}</div>
+              {entree.detail && <div class="detail">{entree.detail}</div>}
+            </div>
+          </li>
+        )
+      )
+    }
+  </ol>
+</section>
+
+<style>
+  .parcours {
+    padding-bottom: 72px;
+  }
+
+  .liste {
+    margin: 24px 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .entree {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 32px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .periode {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .entree:not(.entree--compacte) .periode {
+    flex: 0 0 160px;
+  }
+
+  .contenu {
+    flex: 1 1 320px;
+    min-width: 0;
+  }
+
+  .titre {
+    font-weight: 600;
+  }
+
+  .detail {
+    color: var(--text-2);
+  }
+
+  /* Les stages tiennent sur une ligne : période · intitulé, détail */
+  .entree--compacte {
+    display: block;
+    padding: 12px 0;
+    color: var(--text-2);
+  }
+
+  .entree--compacte .titre {
+    font-weight: 500;
+    color: var(--text);
+  }
+</style>

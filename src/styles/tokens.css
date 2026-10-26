@@ -16,7 +16,9 @@
   --code-num: #f2cc8f;
 
   /* Polices : JetBrains Mono pour titres, navigation et étiquettes, IBM Plex Sans pour le texte */
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  /* La flèche « → » n'est pas dans le sous-ensemble latin de JetBrains Mono : le navigateur
+     la tire de la première police à chasse fixe du système (Consolas, Menlo) */
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Mise en page */

@@ -1,0 +1,11 @@
+---
+import Accueil from '../../components/Accueil.astro';
+import { t } from '../../i18n/ui';
+import Base from '../../layouts/Base.astro';
+
+const lang = 'en';
+---
+
+<Base lang={lang} title={t(lang, 'accueil.titre')} description={t(lang, 'accueil.description')}>
+  <Accueil lang={lang} />
+</Base>

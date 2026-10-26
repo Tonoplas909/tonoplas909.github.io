@@ -147,9 +147,8 @@ test.describe('accueil français (/)', () => {
   });
 });
 
-// La page /en/ est créée par la tâche 5, qui retire ce `fixme`.
 test.describe('accueil anglais (/en/)', () => {
-  test.fixme('déclare la langue anglaise et pointe vers la version française', async ({ page }) => {
+  test('déclare la langue anglaise et pointe vers la version française', async ({ page }) => {
     await page.goto('/en/');
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
