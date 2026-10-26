@@ -44,3 +44,12 @@ export function altCapture(titre: string, n: number, lang: Lang, legende?: Local
   const texte = legende?.[lang]?.trim();
   return texte ? texte : ALT_PAR_DEFAUT[lang](titre, n);
 }
+
+/**
+ * Index de l'image affichée après un déplacement de `pas` images (négatif pour reculer),
+ * en bouclant : après la dernière on revient à la première et inversement. `n` est le nombre d'images.
+ */
+export function indexSuivant(courant: number, pas: number, n: number): number {
+  if (n <= 1) return 0;
+  return (((courant + pas) % n) + n) % n;
+}

@@ -15,7 +15,7 @@ const { lang, projet } = Astro.props;
 const LARGEUR_VIGNETTE = 480;
 const LARGEUR_GRANDE = 1600;
 
-// Les captures arrivent dans l'ordre alphabétique des noms de fichiers ; la légende se cherche par nom de fichier.
+// Les captures arrivent dans l'ordre naturel des noms de fichiers (2 avant 10) ; la légende se cherche par nom de fichier.
 const captures = await Promise.all(
   capturesDuProjet(projet.id).map(async ({ src, fichier }, index) => {
     // Astro n'agrandit jamais une image : la grande version est au plus aussi large que l'original
@@ -257,6 +257,8 @@ const plusieurs = captures.length > 1;
 </style>
 
 <script>
+  import { indexSuivant } from '../lib/galerie';
+
   for (const galerie of document.querySelectorAll<HTMLElement>('[data-galerie]')) {
     const dialogue = galerie.querySelector<HTMLDialogElement>('[data-galerie-dialog]');
     const image = galerie.querySelector<HTMLImageElement>('[data-galerie-image]');
@@ -268,9 +270,11 @@ const plusieurs = captures.length > 1;
 
     let courant = 0;
     let ouvreur: HTMLAnchorElement | null = null;
+    // Vrai si l'appui en cours (pointerdown) a commencé sur le fond de la visionneuse
+    let appuiSurLeFond = false;
 
     const afficher = (index: number) => {
-      courant = (index + liens.length) % liens.length;
+      courant = index;
       const lien = liens[courant];
       image.src = lien.href;
       image.alt = lien.querySelector('img')?.alt ?? '';
@@ -280,7 +284,7 @@ const plusieurs = captures.length > 1;
     };
 
     const aller = (pas: number) => {
-      if (liens.length > 1) afficher(courant + pas);
+      if (liens.length > 1) afficher(indexSuivant(courant, pas, liens.length));
     };
 
     liens.forEach((lien, index) => {
@@ -300,7 +304,10 @@ const plusieurs = captures.length > 1;
     galerie.querySelector('[data-galerie-suivante]')?.addEventListener('click', () => aller(1));
     galerie.querySelector('[data-galerie-fermer]')?.addEventListener('click', () => dialogue.close());
 
-    dialogue.addEventListener('keydown', (evenement) => {
+    // Les flèches sont écoutées sur le document tant que la visionneuse est ouverte : selon le navigateur
+    // (Safari, Firefox), le focus n'est pas toujours dans le dialogue après un clic.
+    document.addEventListener('keydown', (evenement) => {
+      if (!dialogue.open) return;
       if (evenement.altKey || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey) return;
       if (evenement.key === 'ArrowLeft') {
         evenement.preventDefault();
@@ -311,9 +318,17 @@ const plusieurs = captures.length > 1;
       }
     });
 
-    // Le dialogue occupe tout l'écran : un clic hors de l'image et des boutons est un clic sur le fond
+    // Le dialogue occupe tout l'écran : hors de l'image et des boutons, on est sur le fond. Il ne se ferme que si
+    // l'appui et le clic ont eu lieu sur le fond : pas après un glissement qui finit là, ni au second clic d'un
+    // double-clic (`detail` > 1), par exemple celui d'une vignette qui vient d'ouvrir la visionneuse.
+    const surLeFond = (cible: EventTarget | null) => cible === dialogue || cible === scene;
+    dialogue.addEventListener('pointerdown', (evenement) => {
+      appuiSurLeFond = surLeFond(evenement.target);
+    });
     dialogue.addEventListener('click', (evenement) => {
-      if (evenement.target === dialogue || evenement.target === scene) dialogue.close();
+      const appuiDepuisLeFond = appuiSurLeFond;
+      appuiSurLeFond = false;
+      if (appuiDepuisLeFond && surLeFond(evenement.target) && evenement.detail <= 1) dialogue.close();
     });
 
     // Échap ferme nativement ; le focus revient au lien qui a ouvert la visionneuse (même sans focus au clic, comme sur Safari)
