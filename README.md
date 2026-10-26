@@ -40,6 +40,28 @@ obligatoire, `demo` facultatif). L'ordre du tableau est l'ordre d'affichage. Les
 FR et EN, le sitemap et la visionneuse suivent automatiquement. Les tests vérifient que les textes
 FR et EN ne sont pas vides et que les ids sont uniques.
 
+**Attention : les tests figent volontairement la liste actuelle des 8 projets** (7 jeux et 1
+projet associatif, Cafet'MIAGE), telle que la définit la spec du site. Ajouter, retirer ou
+réordonner un projet fait donc échouer `npm test` et `npm run test:e2e`, et comme le workflow de
+déploiement lance les deux avant de publier, **un push sur `main` sans ces mises à jour bloque la
+mise en ligne**. Mettre à jour les tests dans le même commit que `src/data/projets.ts` :
+
+| Fichier | À adapter |
+| --- | --- |
+| `tests/unit/data.test.ts` | la liste des ids dans l'ordre d'affichage, le « 7 autres en jeu » (`toHaveLength(7)`), la liste des projets en vedette |
+| `tests/unit/filtre.test.ts` | les comptes « tous » (8) et « jeu » (7), la liste des projets « asso » |
+| `tests/unit/projets.test.ts` | les voisins précédent et suivant, y compris la boucle entre le dernier projet et le premier |
+| `tests/unit/hero.test.ts` | le nombre de projets du bloc `profil.ts` (`toBe(8)`) |
+| `tests/e2e/projets.spec.ts` | les comptes de cartes (8), le filtre « Jeux » (7), « 8 projets » et « 8 projects », la liste des ids dans l'ordre d'affichage |
+| `tests/e2e/projet.spec.ts` | la liste `IDS` des projets, et les liens précédent et suivant des pages `cafet-miage` et `marque` |
+| `tests/e2e/home.spec.ts` | le `projets: 8` du bloc `profil.ts` du héros |
+
+Retirer ou renommer un projet touche aussi les tests qui s'appuient sur lui : `drift-club` (lien
+« Jouer », et sitemap dans `tests/e2e/site.spec.ts`), `pit-wall` (la seule capture),
+`cafet-miage` et `volley-club` (sans démo). Les trois projets du CV sont fixés dans
+`src/components/CvPage.astro` (`cafet-miage`, `drift-club`, `rallye-club`) et dans la constante
+`IDS_PROJETS_CV` de `tests/e2e/cv.spec.ts` : à modifier ensemble si l'un d'eux est retiré ou renommé.
+
 ## Ajouter des captures d'écran
 
 Déposer les images (`.png`, `.jpg`, `.jpeg` ou `.webp`) dans `src/assets/projets/<id>/`, où
