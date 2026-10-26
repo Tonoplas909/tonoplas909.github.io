@@ -1,0 +1,52 @@
+---
+import { profil } from '../data/profil';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<footer id="contact" class="container site-footer" aria-label={t(lang, 'nav.contact')}>
+  <span class="invite" aria-hidden="true">$ contact --matis</span>
+  <div class="liens">
+    {/* TÂCHE 5 : monter ici le composant de contact par e-mail (l'adresse n'est jamais rendue en clair par le pied de page) */}
+    <a href={profil.liens.github} rel="noopener noreferrer">GitHub</a>
+    <a href={profil.liens.linkedin} rel="noopener noreferrer">LinkedIn</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 32px;
+    padding-top: 32px;
+    padding-bottom: 56px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  .invite {
+    color: var(--muted);
+  }
+
+  .liens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+  }
+
+  .liens :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target);
+    text-decoration: none;
+  }
+</style>

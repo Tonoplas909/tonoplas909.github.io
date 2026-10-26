@@ -1,0 +1,65 @@
+---
+import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { profil } from '../data/profil';
+import type { Lang } from '../data/types';
+import { SITE, alternates, personJsonLd } from '../lib/seo';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  image?: string;
+  noindex?: boolean;
+}
+
+const { lang, title, description, image = '/og-default.png', noindex = false } = Astro.props;
+
+const pathname = Astro.url.pathname;
+const canonical = `${SITE}${pathname}`;
+const imageUrl = new URL(image, SITE).href;
+const locales: Record<Lang, string> = { fr: 'fr_FR', en: 'en_US' };
+const autreLocale = locales[lang === 'fr' ? 'en' : 'fr'];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {
+      !noindex &&
+        alternates(pathname).map(({ hreflang, href }) => (
+          <link rel="alternate" hreflang={hreflang} href={href} />
+        ))
+    }
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profil.nom} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:locale" content={locales[lang]} />
+    <meta property="og:locale:alternate" content={autreLocale} />
+    {!noindex && <meta property="og:url" content={canonical} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(personJsonLd(profil, lang))} />
+  </head>
+  <body>
+    <Header lang={lang} />
+    <main>
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

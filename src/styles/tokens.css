@@ -1,0 +1,28 @@
+:root {
+  /* Couleurs (spec §7) */
+  --bg: #0a0e14;
+  --surface: #0f151d;
+  --surface-2: #111a24;
+  --line: #1f2b38;
+  --line-strong: #34475c;
+  --text: #e6edf3;
+  --text-2: #b8c7d6;
+  --muted: #9fb0c0;
+  --accent: #6cb6ff;
+  --accent-hover: #a5d3ff;
+  --ok: #3ddc97;
+  --code-kw: #c792ea;
+  --code-str: #a5d6a7;
+  --code-num: #f2cc8f;
+
+  /* Polices : JetBrains Mono pour titres, navigation et étiquettes, IBM Plex Sans pour le texte */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Mise en page */
+  --container: 1120px;
+  --gutter: 32px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --target: 44px;
+}

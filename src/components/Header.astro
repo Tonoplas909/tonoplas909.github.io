@@ -1,0 +1,146 @@
+---
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { equivalentPath, homePath } from '../lib/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const pathname = Astro.url.pathname;
+const home = homePath(lang);
+
+// Sur l'accueil, les ancres restent locales ; ailleurs, elles pointent vers l'accueil de la langue.
+const prefixe = pathname === home ? '' : home;
+const liens = [
+  { cle: 'nav.projets', href: `${prefixe}#projets` },
+  { cle: 'nav.parcours', href: `${prefixe}#parcours` },
+  { cle: 'nav.cv', href: `${prefixe}#cv` },
+  { cle: 'nav.contact', href: `${prefixe}#contact` },
+];
+
+const langues: { code: Lang; libelle: string }[] = [
+  { code: 'fr', libelle: 'FR' },
+  { code: 'en', libelle: 'EN' },
+];
+---
+
+<header class="container site-header">
+  <a class="logo" href={home}>~/matis-demore<span class="logo-curseur" aria-hidden="true">_</span></a>
+  <nav class="nav">
+    {liens.map((lien) => <a class="nav-lien" href={lien.href}>{t(lang, lien.cle)}</a>)}
+    <div class="langues">
+      {
+        langues.map(({ code, libelle }) =>
+          code === lang ? (
+            <a class="langue" href={equivalentPath(pathname, code)} aria-current="true">
+              {libelle}
+            </a>
+          ) : (
+            <a
+              class="langue"
+              href={equivalentPath(pathname, code)}
+              hreflang={code}
+              aria-label={t(lang, 'lang.switch')}
+            >
+              {libelle}
+            </a>
+          )
+        )
+      }
+    </div>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-block: 20px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .logo:hover {
+    color: var(--text);
+  }
+
+  .logo-curseur {
+    color: var(--accent);
+  }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 20px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  .nav-lien {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--target);
+    min-height: var(--target);
+    padding-inline: 4px;
+    color: var(--text-2);
+    text-decoration: none;
+    text-transform: lowercase;
+  }
+
+  .nav-lien:hover {
+    color: var(--accent-hover);
+  }
+
+  .langues {
+    display: flex;
+    margin-left: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+  }
+
+  .langue {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: var(--target);
+    border-radius: 5px;
+    color: var(--text-2);
+    text-decoration: none;
+  }
+
+  .langue:hover {
+    color: var(--accent-hover);
+  }
+
+  .langue[aria-current='true'] {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .langue[aria-current='true']:hover {
+    color: var(--bg);
+  }
+
+  /* L'anneau de focus ne doit pas être rogné par la bordure du groupe */
+  .langue:focus-visible {
+    outline-offset: 2px;
+  }
+</style>
