@@ -1,0 +1,243 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import type { Lang, Projet } from '../data/types';
+import { t } from '../i18n/ui';
+import { selectionnerImages } from '../lib/galerie';
+import { projectPath } from '../lib/routes';
+
+interface Props {
+  projet: Projet;
+  lang: Lang;
+}
+
+const { projet, lang } = Astro.props;
+
+// Les images sont déposées dans src/assets/projets/<id>/ ; tant qu'il n'y en a pas, la recherche ne renvoie rien.
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/projets/*/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG,WEBP}',
+  { eager: true }
+);
+const [premiere] = selectionnerImages(Object.keys(images), projet.id);
+const vignette = premiere ? images[premiere].default : undefined;
+
+const pageProjet = projectPath(lang, projet.id);
+const libelleDemo = t(lang, projet.categorie === 'jeu' ? 'projets.jouer' : 'projets.voirSite');
+// L'espace insécable garde le point médian collé à la techno qui le précède
+const stack = projet.stack.join(' · ');
+---
+
+<li
+  class:list={['carte-projet', { 'carte-projet--vedette': projet.vedette }]}
+  data-projet-id={projet.id}
+  data-categorie={projet.categorie}
+>
+  {
+    vignette && (
+      <div class="vignette">
+        <Image src={vignette} alt="" width={640} height={360} format="webp" loading="lazy" />
+      </div>
+    )
+  }
+  <div class="corps">
+    {projet.badge && <span class="badge">{projet.badge[lang]}</span>}
+    <h3 class="titre">
+      <a class="carte-lien" href={pageProjet}>{projet.titre}</a>
+      <span class="fleche" aria-hidden="true">→</span>
+    </h3>
+    <p class="resume">{projet.resume[lang]}</p>
+    <p class="stack">{stack}</p>
+    <div class="actions">
+      {
+        projet.liens.demo && (
+          <a href={projet.liens.demo} rel="noopener noreferrer">
+            {libelleDemo}
+            <span aria-hidden="true"> →</span>
+            <span class="sr-only"> ({projet.titre})</span>
+          </a>
+        )
+      }
+      <a class="action-code" href={projet.liens.code} rel="noopener noreferrer">
+        {t(lang, 'projets.code')}
+        <span class="sr-only"> ({projet.titre})</span>
+      </a>
+    </div>
+  </div>
+</li>
+
+<style>
+  .carte-projet {
+    /* Base de 300 px : trois par ligne sur ordinateur, une colonne sur téléphone */
+    flex: 1 1 300px;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  /* display: flex ci-dessus l'emporterait sur le masquage du navigateur */
+  .carte-projet[hidden] {
+    display: none;
+  }
+
+  /* Cartes en vedette : larges, deux par ligne sur ordinateur */
+  .carte-projet--vedette {
+    flex-basis: 460px;
+  }
+
+  .carte-projet:hover,
+  .carte-projet:has(:focus-visible) {
+    border-color: var(--accent);
+  }
+
+  /* L'anneau de focus entoure la carte entière, pas seulement le titre */
+  .carte-projet:has(.carte-lien:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .vignette {
+    overflow: hidden;
+    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+    border-bottom: 1px solid var(--line);
+    aspect-ratio: 16 / 9;
+  }
+
+  .vignette :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .corps {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .carte-projet--vedette .corps {
+    gap: 14px;
+    padding: 28px;
+  }
+
+  .badge {
+    align-self: flex-start;
+    padding: 4px 10px;
+    background: var(--accent-soft);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent-hover);
+  }
+
+  .titre {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .carte-projet--vedette .titre {
+    font-size: 24px;
+  }
+
+  /* Lien étiré : la carte entière mène à la page du projet */
+  .carte-lien {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .carte-lien:hover {
+    color: var(--text);
+  }
+
+  .carte-lien::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Le focus est montré sur la carte (voir plus haut) */
+  .carte-lien:focus-visible {
+    outline: none;
+  }
+
+  .fleche {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--muted);
+  }
+
+  .carte-projet:hover .fleche,
+  .carte-projet:has(:focus-visible) .fleche {
+    color: var(--accent);
+  }
+
+  .resume {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .stack {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+    margin-top: auto;
+    padding-top: 6px;
+    font-weight: 500;
+  }
+
+  /* Au-dessus du lien étiré, pour rester cliquables séparément */
+  .actions a {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    /* 10 px + 25,6 px de ligne + 10 px : au moins 44 px de haut */
+    padding: 10px 0;
+    text-decoration: none;
+  }
+
+  .actions .action-code {
+    color: var(--text-2);
+  }
+
+  .actions .action-code:hover {
+    color: var(--accent-hover);
+  }
+
+  /* Zoom de la vignette et décalage de la flèche : coupés si l'utilisateur réduit les animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .vignette :global(img) {
+      transition: transform 0.3s ease;
+    }
+
+    .fleche {
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .carte-projet:hover .vignette :global(img),
+    .carte-projet:has(:focus-visible) .vignette :global(img) {
+      transform: scale(1.04);
+    }
+
+    .carte-projet:hover .fleche,
+    .carte-projet:has(:focus-visible) .fleche {
+      transform: translateX(4px);
+    }
+  }
+</style>

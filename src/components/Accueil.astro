@@ -1,8 +1,11 @@
 ---
+import { projets } from '../data/projets';
 import type { Lang } from '../data/types';
 import { t } from '../i18n/ui';
 import BlocCv from './BlocCv.astro';
+import CarteProjet from './CarteProjet.astro';
 import Competences from './Competences.astro';
+import FiltreProjets from './FiltreProjets.astro';
 import Hero from './Hero.astro';
 import Parcours from './Parcours.astro';
 
@@ -11,13 +14,21 @@ interface Props {
 }
 
 const { lang } = Astro.props;
+
+// Les vedettes en tête, puis le reste, chacun dans l'ordre de `projets`
+const ordre = [...projets.filter((projet) => projet.vedette), ...projets.filter((projet) => !projet.vedette)];
 ---
 
 <Hero lang={lang} />
 <Competences lang={lang} />
 <section id="projets" class="container projets" aria-labelledby="projets-titre">
-  <h2 id="projets-titre" class="titre-section">{t(lang, 'projets.titre')}</h2>
-  <!-- TÂCHE 6 : monter ici le filtre et les cartes de projets -->
+  <div class="entete">
+    <h2 id="projets-titre" class="titre-section">{t(lang, 'projets.titre')}</h2>
+    <FiltreProjets lang={lang} />
+  </div>
+  <ul class="cartes">
+    {ordre.map((projet) => <CarteProjet projet={projet} lang={lang} />)}
+  </ul>
 </section>
 <Parcours lang={lang} />
 <BlocCv lang={lang} />
@@ -26,5 +37,23 @@ const { lang } = Astro.props;
   .projets {
     padding-top: 24px;
     padding-bottom: 72px;
+  }
+
+  .entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: 28px;
+  }
+
+  .cartes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 </style>

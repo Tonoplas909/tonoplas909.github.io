@@ -1,0 +1,105 @@
+---
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { FILTRES } from '../lib/filtre';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+{/* Masqué dans le HTML : sans JavaScript, les 8 cartes restent affichées et il n'y a pas de bouton inutile. Le script retire `hidden`. */}
+<div class="filtre" role="group" aria-label={t(lang, 'projets.filtre.label')} data-filtre-projets hidden>
+  {
+    FILTRES.map((filtre) => (
+      <button type="button" class="bouton-filtre" data-filtre={filtre} aria-pressed={filtre === 'tous' ? 'true' : 'false'}>
+        {t(lang, `projets.filtre.${filtre}`)}
+      </button>
+    ))
+  }
+</div>
+<p
+  class="sr-only"
+  role="status"
+  data-filtre-statut
+  data-lang={lang}
+  data-one={t(lang, 'projets.compte.one')}
+  data-other={t(lang, 'projets.compte.other')}
+>
+</p>
+
+<style>
+  .filtre {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  /* display: flex ci-dessus l'emporterait sur le masquage du navigateur */
+  .filtre[hidden] {
+    display: none;
+  }
+
+  .bouton-filtre {
+    min-height: var(--target);
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+  }
+
+  .bouton-filtre:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .bouton-filtre[aria-pressed='true'] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+  }
+</style>
+
+<script>
+  import type { Categorie, Lang } from '../data/types';
+  import { FILTRES, filtrerProjets, formaterCompte, type FiltreProjet } from '../lib/filtre';
+
+  interface CarteDom {
+    carte: HTMLElement;
+    categorie: Categorie;
+  }
+
+  const barre = document.querySelector<HTMLElement>('[data-filtre-projets]');
+  const statut = document.querySelector<HTMLElement>('[data-filtre-statut]');
+  const cartes: CarteDom[] = Array.from(document.querySelectorAll<HTMLElement>('[data-projet-id]')).map(
+    (carte) => ({ carte, categorie: carte.dataset.categorie as Categorie })
+  );
+
+  if (barre && statut && cartes.length > 0) {
+    const boutons = Array.from(barre.querySelectorAll<HTMLButtonElement>('button[data-filtre]'));
+    const lang = statut.dataset.lang as Lang;
+    const modeles = { one: statut.dataset.one ?? '', other: statut.dataset.other ?? '' };
+
+    const appliquer = (filtre: FiltreProjet) => {
+      const visibles = new Set(filtrerProjets(cartes, filtre));
+      for (const element of cartes) element.carte.hidden = !visibles.has(element);
+      for (const bouton of boutons) bouton.setAttribute('aria-pressed', String(bouton.dataset.filtre === filtre));
+      statut.textContent = formaterCompte(visibles.size, lang, modeles);
+    };
+
+    for (const bouton of boutons) {
+      const filtre = FILTRES.find((valeur) => valeur === bouton.dataset.filtre);
+      if (filtre) bouton.addEventListener('click', () => appliquer(filtre));
+    }
+
+    barre.hidden = false;
+  }
+</script>
