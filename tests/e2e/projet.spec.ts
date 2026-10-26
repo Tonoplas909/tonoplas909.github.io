@@ -295,22 +295,25 @@ test.describe('galerie et visionneuse avec JavaScript', () => {
     await expect(dialogue).toBeHidden();
   });
 
-  test('ne ferme pas la visionneuse quand un glissement commencé sur l’image finit sur le fond', async ({
+  test('ne ferme pas la visionneuse quand l’appui a eu lieu sur l’image et le clic sur le fond (glissement)', async ({
     page,
   }) => {
     await page.goto(projectPath('fr', projetGalerie.id));
     const dialogue = page.locator(DIALOGUE);
     await page.locator(VIGNETTE).first().click();
     await expect(dialogue).toBeVisible();
-    const boite = await dialogue.locator('img').boundingBox();
-    expect(boite).not.toBeNull();
 
-    await page.mouse.move((boite?.x ?? 0) + (boite?.width ?? 0) / 2, (boite?.y ?? 0) + (boite?.height ?? 0) / 2);
-    await page.mouse.down();
-    await page.mouse.move(4, 4, { steps: 5 });
-    await page.mouse.up();
-
+    // Quand un appui sur un élément est relâché sur le fond, le navigateur attribue le clic à leur ancêtre commun,
+    // le dialogue. Un vrai glissement depuis l'image lance le glisser-déposer natif, qui supprime le clic : la
+    // séquence « appui sur l'image, clic sur le dialogue » est donc envoyée telle quelle.
+    await dialogue.locator('img').dispatchEvent('pointerdown');
+    await dialogue.dispatchEvent('click');
     await expect(dialogue).toBeVisible();
+
+    // Un appui puis un clic sur le fond ferment, eux, la visionneuse
+    await dialogue.dispatchEvent('pointerdown');
+    await dialogue.dispatchEvent('click');
+    await expect(dialogue).toBeHidden();
   });
 
   test('ne ferme pas la visionneuse au second clic d’un double-clic', async ({ page }) => {
