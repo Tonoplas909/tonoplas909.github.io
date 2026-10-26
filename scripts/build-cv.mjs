@@ -74,15 +74,20 @@ async function main() {
       await page.goto(`${ORIGINE}${chemin}`, { waitUntil: 'networkidle' });
       // Le lien e-mail est assemblé par JavaScript au chargement : le PDF doit contenir ce lien.
       await page.waitForSelector('a[data-email][href^="mailto:"]');
-      await page.evaluate(() => document.fonts.ready);
+      // Le média d'impression d'abord : les polices à attendre sont celles de la feuille d'impression
       await page.emulateMedia({ media: 'print' });
+      await page.evaluate(() => document.fonts.ready);
       const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true });
       await writeFile(`${DIST}${fichier}`, pdf);
       console.log(`${chemin} -> dist/${fichier} (${Math.round(pdf.length / 1024)} Ko)`);
     }
   } finally {
-    await navigateur?.close();
-    serveur.kill();
+    // Le serveur est arrêté même si la fermeture du navigateur échoue
+    try {
+      await navigateur?.close();
+    } finally {
+      serveur.kill();
+    }
   }
 }
 
