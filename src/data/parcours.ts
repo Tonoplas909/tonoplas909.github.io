@@ -96,14 +96,14 @@ export const parcours: EntreeParcours[] = [
     id: 'noeva',
     type: 'stage',
     debut: 2020,
-    titre: { fr: 'Stage de seconde, NOEVA', en: 'Year 10 work placement, NOEVA' },
+    titre: { fr: 'Stage de seconde, NOEVA', en: 'Work experience placement, NOEVA' },
     detail: { fr: '1 semaine, intégrateur informatique', en: '1 week, IT integrator' },
   },
   {
     id: 'air-france',
     type: 'stage',
     debut: 2019,
-    titre: { fr: 'Stage de troisième, Air France', en: 'Year 9 work placement, Air France' },
+    titre: { fr: 'Stage de troisième, Air France', en: 'Work experience placement, Air France' },
     detail: { fr: '1 semaine, data center et DSI', en: '1 week, data center and IT department' },
   },
   {

@@ -66,7 +66,7 @@ export const projets: Projet[] = [
         "Des comptes avec pseudo, adossés à Supabase, donnent accès à un classement par niveau. Comme la simulation est déterministe, le serveur rejoue chaque course à partir des commandes enregistrées pour vérifier les scores. Le projet est écrit en TypeScript avec Vite et Three.js, testé avec Vitest, et publié sur GitHub Pages après les tests à chaque push.",
       ],
       en: [
-        "Drift Club is a 3D drifting game that runs in the browser: you chain drifts down mountain roads to score as many points as possible before the finish line. A drift is worth more the greater the angle and speed, the combo climbs up to x5, and hitting the scenery loses the drift in progress. There are three driving modes (Arcade, Semi-arcade, Demanding) and seven cars, each with its own physics.",
+        "Drift Club is a 3D drifting game that runs in the browser: you chain drifts down mountain roads to score as many points as possible before the finish line. A drift is worth more the greater the angle and speed, the combo climbs up to x5, and hitting the scenery loses the drift in progress. There are three driving modes, Arcade, Semi-arcade and Exigeant (no assists), and seven cars, each with its own physics.",
         "The engine sound is physically simulated in an AudioWorklet, based on an open-source generator (MIT licence) that is itself drawn from a research paper: each cylinder is an acoustic tube, and each car has its own engine profile. The game also offers a level editor (sharing by link, by .json file or by publishing online), a Zen mode on an endless generated road, and a garage with dozens of liveries per car, unlocked from crates.",
         "Accounts with a username, backed by Supabase, give access to a leaderboard for each level. Since the simulation is deterministic, the server replays each race from the recorded inputs to verify scores. The project is written in TypeScript with Vite and Three.js, tested with Vitest, and published to GitHub Pages after the tests pass on every push.",
       ],
@@ -275,12 +275,12 @@ export const projets: Projet[] = [
       fr: [
         "Pit Wall est un jeu incrémental de course en vue de dessus, dans le navigateur. On dirige une écurie : les voitures roulent seules contre cinq écuries rivales, et l'argent gagné sert à devenir plus rapide, à agrandir l'écurie (jusqu'à 4 voitures) et à débloquer de nouveaux circuits.",
         "Les courses s'enchaînent automatiquement : départ au feu, 3 tours, puis nouvelle course. L'argent vient de chaque tour, de chaque dépassement et de la place à l'arrivée, et un clic sur une voiture déclenche le nitro. Les améliorations portent sur le moteur, les pneus, les freins et le nitro, et les bonnes places rapportent de la réputation, qui débloque 5 circuits de plus en plus lucratifs.",
-        "Le jeu n'a aucune dépendance et aucune étape de build : JavaScript vanilla (modules ES) et Canvas 2D. La progression est sauvegardée dans le navigateur (localStorage), sans serveur. Le code est découpé en modules (voiture, course, économie, sauvegarde, rendu) couverts par des tests Node.",
+        "Le jeu n'a aucune dépendance et aucune étape de build : JavaScript vanilla (modules ES) et Canvas 2D. La progression est sauvegardée dans le navigateur (localStorage), sans serveur. Le code est découpé en modules (voiture, course, économie, sauvegarde) couverts par des tests Node.",
       ],
       en: [
         "Pit Wall is a top-down incremental racing game in the browser. You run a racing team: your cars race on their own against five rival teams, and the money you earn is spent on getting faster, growing the team (up to 4 cars) and unlocking new circuits.",
         "Races run back to back automatically: lights-out start, 3 laps, then a new race. Money comes from every lap, every overtake and your finishing position, and clicking a car triggers its nitro. Upgrades cover the engine, tyres, brakes and nitro, and good finishes earn reputation, which unlocks 5 increasingly lucrative circuits.",
-        "The game has no dependencies and no build step: vanilla JavaScript (ES modules) and Canvas 2D. Progress is saved in the browser (localStorage), with no server. The code is split into modules (car, race, economy, saving, rendering) covered by Node tests.",
+        "The game has no dependencies and no build step: vanilla JavaScript (ES modules) and Canvas 2D. Progress is saved in the browser (localStorage), with no server. The code is split into modules (car, race, economy, saving) covered by Node tests.",
       ],
     },
     points: {
