@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   findForbidden,
+  findForbiddenMatches,
   missingAlternates,
   pdfHasLink,
   pdfPageCount,
@@ -9,6 +10,37 @@ import {
 describe('findForbidden', () => {
   it('repère un numéro de mobile français', () => {
     expect(findForbidden('<p>06 12 34 56 78</p>')).toContain('numéro de mobile');
+  });
+
+  it.each([
+    ['06 12 34 56 78', '<p>06 12 34 56 78</p>'],
+    ['06.12.34.56.78', '<p>06.12.34.56.78</p>'],
+    ['06-12-34-56-78', '<p>06-12-34-56-78</p>'],
+    ['0612345678', '<p>0612345678</p>'],
+    ['07 12 34 56 78', '<p>07 12 34 56 78</p>'],
+    ['+33 6 12 34 56 78', '<p>+33 6 12 34 56 78</p>'],
+    ['+33612345678', '<p>+33612345678</p>'],
+    ['numéro entouré de texte', '<p>Appelez le 06 12 34 56 78, merci.</p>'],
+    ['numéro en début de ligne', '06 12 34 56 78'],
+    ['numéro dans un lien tel:', '<a href="tel:+33612345678">'],
+  ])('repère un numéro de mobile : %s', (_cas, html) => {
+    expect(findForbidden(html)).toContain('numéro de mobile');
+  });
+
+  it.each([
+    'Screenshot_20260612-143012',
+    '2026-06-12-14-30-12',
+    'Screenshot_2026-06-12-14-30-12',
+  ])('ne prend pas le nom de fichier « %s » pour un numéro de mobile', (nom) => {
+    expect(findForbidden(`<p>${nom}</p>`)).toEqual([]);
+    expect(findForbidden(`${nom}.png`)).toEqual([]);
+    expect(findForbidden(`<img src="/_astro/${nom}.Zx4kQ9.webp" alt="">`)).toEqual([]);
+    expect(findForbidden(`<meta property="og:image" content="https://tonoplas909.github.io/_astro/${nom}.Zx4kQ9.jpg">`)).toEqual([]);
+  });
+
+  it('ne prend pas un nom de fichier horodaté, même complet, pour un numéro de mobile', () => {
+    const html = '<img src="/_astro/Screenshot_2026-06-12-14-30-12.hash.webp" alt="">';
+    expect(findForbidden(html)).toEqual([]);
   });
 
   it('repère une date au format jj/mm/aaaa', () => {
@@ -26,6 +58,32 @@ describe('findForbidden', () => {
 
   it('ne signale rien sur une page propre', () => {
     expect(findForbidden('<h1>Matis Demore</h1>')).toEqual([]);
+  });
+});
+
+describe('findForbiddenMatches', () => {
+  it('donne le nom du motif et un extrait qui contient le texte trouvé', () => {
+    const [trouve] = findForbiddenMatches('<p>Appelez le\n  06 12 34 56 78,\n  merci.</p>');
+
+    expect(trouve.nom).toBe('numéro de mobile');
+    expect(trouve.extrait).toContain('06 12 34 56 78');
+    expect(trouve.extrait).toContain('Appelez');
+    expect(trouve.extrait).not.toMatch(/\n/);
+  });
+
+  it('borne l’extrait, même au milieu d’une longue page', () => {
+    const html = `${'a'.repeat(500)} Né le 01/02/2003 ${'b'.repeat(500)}`;
+    const [trouve] = findForbiddenMatches(html);
+
+    expect(trouve.nom).toBe('date');
+    expect(trouve.extrait).toContain('01/02/2003');
+    expect(trouve.extrait.length).toBeLessThan(120);
+  });
+
+  it('ne renvoie rien sur une page propre, et reste d’accord avec findForbidden', () => {
+    expect(findForbiddenMatches('<h1>Matis Demore</h1>')).toEqual([]);
+    const html = '<p>Lovable 06 12 34 56 78</p>';
+    expect(findForbiddenMatches(html).map(({ nom }) => nom)).toEqual(findForbidden(html));
   });
 });
 

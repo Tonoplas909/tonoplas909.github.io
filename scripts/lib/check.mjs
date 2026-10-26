@@ -6,17 +6,39 @@ import { equivalentPath, langFromPath } from '../../src/lib/routes.ts';
 
 // Ce qui ne doit jamais apparaître dans une page publiée (spec §9 et §10) : numéro de téléphone,
 // date de naissance, traces de l'ancien site généré, adresse e-mail en clair.
+// Le numéro de mobile est borné : le HTML contient aussi des URL d'images dont le nom peut être
+// horodaté (`Screenshot_20260612-143012`, `2026-06-12-14-30-12`), qui ne sont pas des numéros.
+// Avant le numéro : ni caractère de mot, ni `/`, `.` ou `-` (il n'est pas au milieu d'un nom de fichier
+// ou d'une suite de chiffres). Après : pas de caractère de mot (la suite de chiffres s'arrête là).
 const MOTIFS_INTERDITS = [
-  { nom: 'numéro de mobile', motif: /(?:\+33|0)\s?[67](?:[\s.-]?\d{2}){4}/ },
+  { nom: 'numéro de mobile', motif: /(?<![\w/.-])(?:\+33|0)\s?[67](?:[\s.-]?\d{2}){4}(?!\w)/ },
   { nom: 'date', motif: /\b\d{1,2}\/\d{1,2}\/\d{4}\b/ },
   { nom: 'lovable', motif: /lovable/i },
   { nom: 'gptengineer', motif: /gptengineer/i },
   { nom: 'adresse e-mail en clair', motif: /matis\.nico123@gmail\.com/i },
 ];
 
+const CONTEXTE_EXTRAIT = 30;
+
+/**
+ * Première occurrence de chaque motif interdit présent dans `html` : le nom du motif et un extrait
+ * (le texte trouvé avec un peu de contexte, sur une ligne). Liste vide si la page est propre.
+ */
+export function findForbiddenMatches(html) {
+  const trouvees = [];
+  for (const { nom, motif } of MOTIFS_INTERDITS) {
+    const trouve = motif.exec(html);
+    if (trouve === null) continue;
+    const debut = Math.max(0, trouve.index - CONTEXTE_EXTRAIT);
+    const fin = trouve.index + trouve[0].length + CONTEXTE_EXTRAIT;
+    trouvees.push({ nom, extrait: html.slice(debut, fin).replace(/\s+/g, ' ').trim() });
+  }
+  return trouvees;
+}
+
 /** Noms des motifs interdits présents dans `html` (liste vide si la page est propre). */
 export function findForbidden(html) {
-  return MOTIFS_INTERDITS.filter(({ motif }) => motif.test(html)).map(({ nom }) => nom);
+  return findForbiddenMatches(html).map(({ nom }) => nom);
 }
 
 /**

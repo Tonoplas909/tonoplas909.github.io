@@ -5,7 +5,7 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findForbidden, missingAlternates, pdfHasLink, pdfPageCount } from './lib/check.mjs';
+import { findForbiddenMatches, missingAlternates, pdfHasLink, pdfPageCount } from './lib/check.mjs';
 
 const DIST = process.argv[2]
   ? resolve(process.argv[2])
@@ -13,6 +13,8 @@ const DIST = process.argv[2]
 const EMAIL = 'mailto:matis.nico123@gmail.com';
 const PDF_TAILLE_MIN = 10 * 1024;
 const PDFS = ['Matis-Demore-CV.pdf', 'Matis-Demore-CV-EN.pdf'];
+// Pages qui doivent exister : sans elles, `missingAlternates` ne verrait rien à reprocher à un site vide.
+const PAGES_REQUISES = ['/', '/en/', '/cv/', '/en/cv/'];
 
 const anomalies = [];
 const signaler = (fichier, message) => anomalies.push(`${fichier} : ${message}`);
@@ -40,9 +42,12 @@ async function controlerPages() {
   for (const fichier of cibles) {
     const html = await readFile(fichier, 'utf8');
     pages[cheminDePage(fichier)] = html;
-    for (const motif of findForbidden(html)) {
-      signaler(relatif(fichier), `motif interdit (${motif})`);
+    for (const { nom, extrait } of findForbiddenMatches(html)) {
+      signaler(relatif(fichier), `motif interdit (${nom}) : « ${extrait} »`);
     }
+  }
+  for (const chemin of PAGES_REQUISES) {
+    if (!(chemin in pages)) signaler(chemin, 'page absente du site construit');
   }
   for (const chemin of missingAlternates(pages)) {
     signaler(chemin, "la page équivalente dans l'autre langue est absente");
