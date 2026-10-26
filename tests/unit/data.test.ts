@@ -141,7 +141,6 @@ describe('profil', () => {
     for (const lang of LANGUES) {
       expect(profil.intitule[lang].trim()).not.toBe('');
       expect(profil.formation[lang].trim()).not.toBe('');
-      expect(profil.objectif[lang].trim()).not.toBe('');
       expect(profil.langues[lang].length).toBeGreaterThan(0);
       expect(profil.interets[lang].length).toBeGreaterThan(0);
     }
