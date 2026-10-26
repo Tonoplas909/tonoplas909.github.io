@@ -35,7 +35,6 @@ export interface Profil {
   intitule: Localise;
   formation: Localise;
   lieu: string;
-  objectif: Localise;
   langues: Localise<string[]>;
   interets: Localise<string[]>;
   liens: { github: string; linkedin: string };

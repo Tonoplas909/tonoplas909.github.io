@@ -13,8 +13,8 @@ export function profilLines(lang: Lang): LigneProfil[] {
   return [
     { key: 'formation', value: profil.formation[lang] },
     { key: 'lieu', value: profil.lieu },
+    { key: 'hobbies', value: profil.interets[lang] },
     { key: 'stack', value: competences.slice(0, 4) },
     { key: 'projets', value: projets.length },
-    { key: 'cap', value: profil.objectif[lang] },
   ];
 }

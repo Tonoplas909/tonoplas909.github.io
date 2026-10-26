@@ -6,7 +6,6 @@ export const profil: Profil = {
   intitule: { fr: 'Développeur fullstack', en: 'Full-stack developer' },
   formation: { fr: 'M1 MIAGE · NumRes', en: 'M1 MIAGE · NumRes' },
   lieu: 'Sophia-Antipolis',
-  objectif: { fr: 'premier CDI', en: 'first permanent role' },
   langues: { fr: ['français', 'anglais'], en: ['French', 'English'] },
   interets: {
     fr: ['volleyball', 'auto et moto', 'jeux vidéo'],
