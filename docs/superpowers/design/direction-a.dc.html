@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Direction A, Terminal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#6cb6ff}a:hover{color:#a5d3ff}
+</style>
+</helmet>
+<div id="top" style="background: #0a0e14; color: #e6edf3; font-family: 'IBM Plex Sans', system-ui, sans-serif; line-height: 1.6">
+
+<header style="max-width: 1120px; margin: 0 auto; padding: 20px 32px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px">
+<a href="#top" style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 500; color: #e6edf3; text-decoration: none; padding: 12px 0">~/matis-demore<span style="color: #6cb6ff">_</span></a>
+<nav style="display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<a href="#projets" style="color: #b8c7d6; text-decoration: none; padding: 12px 4px">projets</a>
+<a href="#parcours" style="color: #b8c7d6; text-decoration: none; padding: 12px 4px">parcours</a>
+<a href="#cv" style="color: #b8c7d6; text-decoration: none; padding: 12px 4px">cv</a>
+<a href="#contact" style="color: #b8c7d6; text-decoration: none; padding: 12px 4px">contact</a>
+<span style="display: flex; border: 1px solid #223142; border-radius: 6px; overflow: hidden; margin-left: 8px">
+<button type="button" style="min-width: 48px; min-height: 44px; border: 0; background: #6cb6ff; color: #0a0e14; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; cursor: pointer">FR</button>
+<button type="button" style="min-width: 48px; min-height: 44px; border: 0; background: transparent; color: #b8c7d6; font-family: 'JetBrains Mono', monospace; font-size: 14px; cursor: pointer">EN</button>
+</span>
+</nav>
+</header>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 72px 32px 56px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 48px">
+<div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9fb0c0">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #3ddc97; display: inline-block"></span>
+<span>M1 MIAGE · parcours NumRes · Sophia-Antipolis</span>
+</div>
+<h1 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: clamp(44px, 7vw, 84px); line-height: 1; font-weight: 700; letter-spacing: -0.03em">Matis<br>Demore</h1>
+<p style="margin: 0; font-size: 20px; line-height: 1.55; color: #b8c7d6; max-width: 560px">Développeur fullstack. Je construis des applications web, de l'API à l'interface, et des jeux 3D qui tournent dans le navigateur.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px">
+<a href="#projets" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; background: #6cb6ff; color: #0a0e14; border-radius: 6px; font-weight: 600; text-decoration: none">Voir les projets</a>
+<a href="#cv" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border: 1px solid #34475c; color: #e6edf3; border-radius: 6px; font-weight: 500; text-decoration: none">Télécharger le CV (PDF)</a>
+</div>
+</div>
+
+<div style="flex: 0 1 420px; min-width: 0; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #1f2b38; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0">profil.ts</div>
+<div style="padding: 20px 20px 24px; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 26px; color: #b8c7d6">
+<div><span style="color: #c792ea">const</span> matis = {</div>
+<div style="padding-left: 20px">formation: <span style="color: #a5d6a7">"M1 MIAGE · NumRes"</span>,</div>
+<div style="padding-left: 20px">lieu: <span style="color: #a5d6a7">"Sophia-Antipolis"</span>,</div>
+<div style="padding-left: 20px">stack: [<span style="color: #a5d6a7">"Python"</span>, <span style="color: #a5d6a7">"Vue"</span>, <span style="color: #a5d6a7">"Angular"</span>, <span style="color: #a5d6a7">"TypeScript"</span>],</div>
+<div style="padding-left: 20px">projets: <span style="color: #f2cc8f">8</span>,</div>
+<div style="padding-left: 20px">cap: <span style="color: #a5d6a7">"premier CDI"</span>,</div>
+<div>};</div>
+</div>
+</div>
+</section>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 8px 32px 56px; box-sizing: border-box">
+<h2 style="margin: 0 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: #9fb0c0; letter-spacing: 0.04em">// compétences</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Python</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Vue.js</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Angular</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">TypeScript</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">React</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Java</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">SQL</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Supabase</span>
+<span style="padding: 8px 14px; background: #111a24; border: 1px solid #223142; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #d3dee9">Three.js</span>
+</div>
+</section>
+
+<section id="projets" style="max-width: 1120px; margin: 0 auto; padding: 24px 32px 72px; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 28px">
+<h2 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Projets</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #6cb6ff; background: #11253a; color: #a5d3ff; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: inherit">Tous</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #223142; background: transparent; color: #b8c7d6; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: inherit">Jeux</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #223142; background: transparent; color: #b8c7d6; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: inherit">Associatif</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+
+<article style="flex: 1 1 460px; min-width: 0; box-sizing: border-box; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<span style="align-self: flex-start; padding: 4px 10px; background: #11253a; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5d3ff">Projet réel · BDE MIAGE Nice</span>
+<h3 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700">Cafet'MIAGE</h3>
+<p style="margin: 0; color: #b8c7d6">Planning du staff, gestion du stock et administration de la cafétéria du BDE MIAGE Nice. Déploiement automatique à chaque push.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0"><span>React</span><span>·</span><span>Vite</span><span>·</span><span>Supabase</span><span>·</span><span>GitHub Actions</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: auto; padding-top: 6px; font-weight: 500">
+<a href="https://tonoplas909.github.io/cafeteria-manager/" style="padding: 10px 0; text-decoration: none">Voir le site →</a>
+<a href="https://github.com/Tonoplas909/cafeteria-manager" style="padding: 10px 0; text-decoration: none; color: #b8c7d6">Code</a>
+</div>
+</article>
+
+<article style="flex: 1 1 460px; min-width: 0; box-sizing: border-box; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<span style="align-self: flex-start; padding: 4px 10px; background: #161d27; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #b8c7d6">Jeu · le plus abouti</span>
+<h3 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700">Drift Club</h3>
+<p style="margin: 0; color: #b8c7d6">Jeu de drift 3D dans le navigateur : 7 voitures, moteur sonore simulé physiquement, éditeur de niveaux et partage en ligne.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0"><span>TypeScript</span><span>·</span><span>3D</span><span>·</span><span>Supabase</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: auto; padding-top: 6px; font-weight: 500">
+<a href="https://tonoplas909.github.io/drift-club/" style="padding: 10px 0; text-decoration: none">Jouer →</a>
+<a href="https://github.com/Tonoplas909/drift-club" style="padding: 10px 0; text-decoration: none; color: #b8c7d6">Code</a>
+</div>
+</article>
+
+<article style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700">Rallye Club</h3>
+<p style="margin: 0; color: #b8c7d6">11 spéciales générées de façon procédurale, météo dynamique, notes de copilote lues à voix haute.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0"><span>JavaScript</span><span>·</span><span>Three.js</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: auto; padding-top: 6px; font-weight: 500">
+<a href="https://tonoplas909.github.io/rallye-club/" style="padding: 10px 0; text-decoration: none">Jouer →</a>
+<a href="https://github.com/Tonoplas909/rallye-club" style="padding: 10px 0; text-decoration: none; color: #b8c7d6">Code</a>
+</div>
+</article>
+
+<article style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700">Volley Club</h3>
+<p style="margin: 0; color: #b8c7d6">Volley-ball 3D en 2 contre 2 face à l'IA, avec 3 niveaux de difficulté, au clavier ou à la manette.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0"><span>TypeScript</span><span>·</span><span>Three.js</span><span>·</span><span>Vitest</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: auto; padding-top: 6px; font-weight: 500">
+<a href="https://github.com/Tonoplas909/volley-club" style="padding: 10px 0; text-decoration: none">Code →</a>
+</div>
+</article>
+
+<article style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700">Tanks!</h3>
+<p style="margin: 0; color: #b8c7d6">Recréation du mini-jeu de Wii Play : 20 missions solo, coopération et versus en ligne jusqu'à 4 joueurs, en WebRTC.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c0"><span>JavaScript</span><span>·</span><span>WebRTC</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: auto; padding-top: 6px; font-weight: 500">
+<a href="https://tonoplas909.github.io/tanks/" style="padding: 10px 0; text-decoration: none">Jouer →</a>
+<a href="https://github.com/Tonoplas909/tanks" style="padding: 10px 0; text-decoration: none; color: #b8c7d6">Code</a>
+</div>
+</article>
+
+</div>
+
+<div style="margin-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<a href="#projets" style="display: inline-block; padding: 12px 0; text-decoration: none">Voir les 8 projets →</a>
+</div>
+</section>
+
+<section id="parcours" style="max-width: 1120px; margin: 0 auto; padding: 0 32px 72px; box-sizing: border-box">
+<h2 style="margin: 0 0 24px; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Parcours</h2>
+<div style="display: flex; flex-direction: column; border-top: 1px solid #1f2b38">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #1f2b38">
+<div style="flex: 0 0 160px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9fb0c0">2026 → auj.</div>
+<div style="flex: 1 1 320px; min-width: 0"><div style="font-weight: 600">M1 MIAGE, parcours NumRes</div><div style="color: #b8c7d6">Sophia-Antipolis</div></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #1f2b38">
+<div style="flex: 0 0 160px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9fb0c0">2023 → […]</div>
+<div style="flex: 1 1 320px; min-width: 0"><div style="font-weight: 600">Alternance, développeur fullstack · HIMYDATA</div><div style="color: #b8c7d6">Python et frontend (Vue.js, Angular)</div></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #1f2b38">
+<div style="flex: 0 0 160px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9fb0c0">2022 → 2023</div>
+<div style="flex: 1 1 320px; min-width: 0"><div style="font-weight: 600">Alternance, développeur back-end Python · QITI</div><div style="color: #b8c7d6">Équipe DevOps, méthode Scrum</div></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #1f2b38">
+<div style="flex: 0 0 160px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9fb0c0">Vie associative</div>
+<div style="flex: 1 1 320px; min-width: 0"><div style="font-weight: 600">Membre du BDE MIAGE Nice</div><div style="color: #b8c7d6">Auteur de Cafet'MIAGE, l'outil de gestion de la cafétéria</div></div>
+</div>
+</div>
+</section>
+
+<section id="cv" style="max-width: 1120px; margin: 0 auto; padding: 0 32px 72px; box-sizing: border-box">
+<div style="background: #0f151d; border: 1px solid #1f2b38; border-radius: 10px; padding: 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 32px">
+<div style="flex: 1 1 360px; min-width: 0"><h2 style="margin: 0 0 6px; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700">Le CV, en une page</h2><p style="margin: 0; color: #b8c7d6">Version française et anglaise, à jour avec ce site.</p></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="#cv" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; background: #6cb6ff; color: #0a0e14; border-radius: 6px; font-weight: 600; text-decoration: none">CV en français (PDF)</a>
+<a href="#cv" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border: 1px solid #34475c; color: #e6edf3; border-radius: 6px; font-weight: 500; text-decoration: none">CV in English (PDF)</a>
+</div>
+</div>
+</section>
+
+<footer id="contact" style="max-width: 1120px; margin: 0 auto; padding: 32px 32px 56px; box-sizing: border-box; border-top: 1px solid #1f2b38; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 32px; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<span style="color: #9fb0c0">$ contact --matis</span>
+<div style="display: flex; flex-wrap: wrap; gap: 0 24px">
+<a href="#contact" style="padding: 12px 0; text-decoration: none">[adresse e-mail]</a>
+<a href="https://github.com/Tonoplas909" style="padding: 12px 0; text-decoration: none">GitHub</a>
+<a href="#contact" style="padding: 12px 0; text-decoration: none">[LinkedIn]</a>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
