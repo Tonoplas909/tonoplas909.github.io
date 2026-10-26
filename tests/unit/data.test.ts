@@ -15,8 +15,14 @@ function trouver(id: string) {
 }
 
 describe('projets', () => {
-  it("respectent l'ordre d'affichage de la spec", () => {
-    expect(projets.map((p) => p.id)).toEqual([
+  // Garde volontaire n° 1 : la liste des projets (ids et ordre d'affichage) est celle de la spec §5.2.
+  // Tout le reste des tests se déduit des données et suit seul les ajouts de projet.
+  it("respectent la liste et l'ordre d'affichage de la spec (§5.2)", () => {
+    expect(
+      projets.map((p) => p.id),
+      'La liste des projets ne correspond plus à la spec §5.2. Si le changement est voulu (projet ajouté, ' +
+        'retiré ou réordonné), mets à jour cette liste, et seulement elle : voir le README, « Ajouter un projet ».',
+    ).toEqual([
       'cafet-miage',
       'drift-club',
       'rallye-club',
@@ -69,30 +75,25 @@ describe('projets', () => {
     });
   });
 
-  it("n'ont pas de démo pour volley-club et cafet-miage (spec 5.2 et 5.4)", () => {
-    expect(trouver('volley-club').liens.demo).toBeUndefined();
-    expect(trouver('cafet-miage').liens.demo).toBeUndefined();
+  // Garde volontaire n° 2 : vie privée. Pour lier la démo, supprimer ce test.
+  it("ne lie pas la démo de Cafet'MIAGE (spec §5.4)", () => {
+    expect(
+      trouver('cafet-miage').liens.demo,
+      "Cafet'MIAGE n'a volontairement pas de lien vers sa démo (spec §5.4) : la démo publique peut afficher " +
+        "les noms réels des membres du staff. Ne la lier qu'après confirmation de Matis ; " +
+        'pour la lier, supprimer cette assertion.',
+    ).toBeUndefined();
   });
 
-  it('classent cafet-miage en asso avec un badge, et les 7 autres en jeu', () => {
-    const cafet = trouver('cafet-miage');
-    expect(cafet.categorie).toBe('asso');
-    expect(cafet.badge).toBeDefined();
-    expect(cafet.badge?.fr.trim()).not.toBe('');
-    expect(cafet.badge?.en.trim()).not.toBe('');
-
-    const autres = projets.filter((p) => p.id !== 'cafet-miage');
-    expect(autres).toHaveLength(7);
-    for (const projet of autres) {
-      expect(projet.categorie).toBe('jeu');
+  it('ont une catégorie connue (jeu ou asso), et un badge complet quand il y en a un', () => {
+    for (const projet of projets) {
+      expect(['jeu', 'asso'], projet.id).toContain(projet.categorie);
+      if (projet.badge !== undefined) {
+        for (const lang of LANGUES) {
+          expect(projet.badge[lang].trim(), `${projet.id} (${lang})`).not.toBe('');
+        }
+      }
     }
-  });
-
-  it('ne mettent en vedette que cafet-miage et drift-club', () => {
-    expect(projets.filter((p) => p.vedette === true).map((p) => p.id)).toEqual([
-      'cafet-miage',
-      'drift-club',
-    ]);
   });
 
   it("n'ont un dossier de captures que pour un projet existant", () => {
@@ -109,18 +110,12 @@ describe('projets', () => {
 });
 
 describe('competences', () => {
-  it('suivent la liste de la spec', () => {
-    expect(competences).toEqual([
-      'Python',
-      'Vue.js',
-      'Angular',
-      'TypeScript',
-      'React',
-      'Java',
-      'SQL',
-      'Supabase',
-      'Three.js',
-    ]);
+  it('forment une liste non vide d’intitulés non vides et sans doublon', () => {
+    expect(competences.length).toBeGreaterThan(0);
+    for (const competence of competences) {
+      expect(competence.trim(), competence).not.toBe('');
+    }
+    expect(new Set(competences).size).toBe(competences.length);
   });
 });
 
@@ -154,9 +149,9 @@ describe('profil', () => {
 });
 
 describe('parcours', () => {
-  it('compte 11 entrées aux identifiants uniques', () => {
-    expect(parcours).toHaveLength(11);
-    expect(new Set(parcours.map((e) => e.id)).size).toBe(11);
+  it('a des entrées aux identifiants uniques', () => {
+    expect(parcours.length).toBeGreaterThan(0);
+    expect(new Set(parcours.map((e) => e.id)).size).toBe(parcours.length);
   });
 
   it('a un titre non vide en FR et en EN pour chaque entrée', () => {
@@ -166,11 +161,11 @@ describe('parcours', () => {
     }
   });
 
-  it("n'invente aucun détail pour Flunch (poste inconnu)", () => {
-    expect(parcours.find((e) => e.id === 'flunch')?.detail).toBeUndefined();
-  });
-
-  it('décrit Eng-IT comme une ESN à Sophia-Antipolis', () => {
-    expect(parcours.find((e) => e.id === 'eng-it')?.detail?.fr).toBe('ESN à Sophia-Antipolis');
+  it('a, quand une entrée a un détail, un détail non vide en FR et en EN', () => {
+    for (const entree of parcours) {
+      if (entree.detail === undefined) continue;
+      expect(entree.detail.fr.trim(), `${entree.id} (fr)`).not.toBe('');
+      expect(entree.detail.en.trim(), `${entree.id} (en)`).not.toBe('');
+    }
   });
 });

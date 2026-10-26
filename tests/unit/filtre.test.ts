@@ -3,10 +3,10 @@ import { projets } from '../../src/data/projets';
 import { FILTRES, filtrerProjets, formaterCompte } from '../../src/lib/filtre';
 
 describe('filtrerProjets', () => {
-  it('« tous » renvoie les 8 projets dans l’ordre d’origine', () => {
+  it('« tous » renvoie tous les projets dans l’ordre d’origine', () => {
     const resultat = filtrerProjets(projets, 'tous');
 
-    expect(resultat).toHaveLength(8);
+    expect(resultat).toHaveLength(projets.length);
     expect(resultat.map((p) => p.id)).toEqual(projets.map((p) => p.id));
   });
 
@@ -16,15 +16,29 @@ describe('filtrerProjets', () => {
     expect(resultat).not.toBe(projets);
   });
 
-  it('« jeu » renvoie les 7 jeux', () => {
+  it('« jeu » renvoie les jeux, dans l’ordre d’origine', () => {
     const resultat = filtrerProjets(projets, 'jeu');
 
-    expect(resultat).toHaveLength(7);
+    expect(resultat.map((p) => p.id)).toEqual(
+      projets.filter((p) => p.categorie === 'jeu').map((p) => p.id),
+    );
     expect(resultat.every((p) => p.categorie === 'jeu')).toBe(true);
   });
 
-  it('« asso » renvoie uniquement cafet-miage', () => {
-    expect(filtrerProjets(projets, 'asso').map((p) => p.id)).toEqual(['cafet-miage']);
+  it('« asso » renvoie les projets associatifs, dans l’ordre d’origine', () => {
+    const resultat = filtrerProjets(projets, 'asso');
+
+    expect(resultat.map((p) => p.id)).toEqual(
+      projets.filter((p) => p.categorie === 'asso').map((p) => p.id),
+    );
+    expect(resultat.every((p) => p.categorie === 'asso')).toBe(true);
+  });
+
+  it('« jeu » et « asso » se partagent les projets sans en perdre ni en compter deux fois', () => {
+    const jeux = filtrerProjets(projets, 'jeu');
+    const assos = filtrerProjets(projets, 'asso');
+
+    expect(jeux.length + assos.length).toBe(projets.length);
   });
 
   it('s’applique à de simples enregistrements { categorie } (cartes lues dans le DOM)', () => {

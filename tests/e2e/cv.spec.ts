@@ -69,22 +69,21 @@ for (const { lang, chemin } of PAGES) {
       expect(phrases).toHaveLength(2);
     });
 
-    test('affiche les 9 compétences', async ({ page }) => {
+    test('affiche toutes les compétences', async ({ page }) => {
       await page.goto(chemin);
 
       const section = page.getByRole('region', { name: t(lang, 'cvpage.competences'), exact: true });
-      expect(competences).toHaveLength(9);
+      // Un tableau attendu : autant d'éléments que de compétences, chacun avec son texte
       await expect(section.getByRole('listitem')).toHaveText(competences);
     });
 
-    test('affiche les 11 entrées du parcours, stages compacts sur une ligne', async ({ page }) => {
+    test('affiche toutes les entrées du parcours, stages compacts sur une ligne', async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.goto(chemin);
 
       const section = page.getByRole('region', { name: t(lang, 'parcours.titre'), exact: true });
       const lignes = section.getByRole('listitem');
-      expect(parcours).toHaveLength(11);
-      await expect(lignes).toHaveCount(11);
+      await expect(lignes).toHaveCount(parcours.length);
 
       for (const entree of parcours) {
         const periode = formatPeriode(entree, lang);

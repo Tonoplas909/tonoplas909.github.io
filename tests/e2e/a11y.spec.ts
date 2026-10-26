@@ -1,7 +1,22 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { projets } from '../../src/data/projets';
+import { projectPath } from '../../src/lib/routes';
+import { avecCaptures, sansCaptures } from './support/captures';
 
-const PAGES = ['/', '/en/', '/projets/drift-club/', '/en/projects/pit-wall/', '/cv/', '/en/cv/'];
+// Un projet sans galerie (en français) et un projet avec galerie (en anglais), si le dépôt en contient ;
+// sinon le premier projet fait l'affaire.
+const projetSimple = sansCaptures[0] ?? projets[0];
+const projetGalerie = avecCaptures[0] ?? projets[0];
+
+const PAGES = [
+  '/',
+  '/en/',
+  projectPath('fr', projetSimple.id),
+  projectPath('en', projetGalerie.id),
+  '/cv/',
+  '/en/cv/',
+];
 
 test.describe('accessibilité (axe, WCAG 2.0/2.1 A et AA)', () => {
   for (const chemin of PAGES) {
@@ -93,7 +108,12 @@ test.describe('navigation au clavier', () => {
 test.describe('mise en page étroite (320 px)', () => {
   test.use({ viewport: { width: 320, height: 640 } });
 
-  for (const chemin of ['/cv/', '/en/cv/', '/projets/pit-wall/', '/en/projects/volley-club/']) {
+  for (const chemin of [
+    '/cv/',
+    '/en/cv/',
+    projectPath('fr', projetGalerie.id),
+    projectPath('en', projetSimple.id),
+  ]) {
     test(`${chemin} : aucun débordement horizontal`, async ({ page }) => {
       await page.goto(chemin);
 

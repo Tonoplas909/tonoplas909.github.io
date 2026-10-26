@@ -3,29 +3,32 @@ import { projets } from '../../src/data/projets';
 import { projetParId, voisins } from '../../src/lib/projets';
 
 describe('voisins', () => {
-  it('donne le projet précédent et le suivant dans l’ordre des données', () => {
-    const { prev, next } = voisins('drift-club');
+  const premier = projets[0];
+  const dernier = projets[projets.length - 1];
 
-    expect(prev.id).toBe('cafet-miage');
-    expect(next.id).toBe('rallye-club');
+  it('donne le projet précédent et le suivant dans l’ordre des données', () => {
+    const { prev, next } = voisins(projets[1].id);
+
+    expect(prev.id).toBe(projets[0].id);
+    expect(next.id).toBe(projets[2].id);
   });
 
   it('boucle au début : le précédent du premier projet est le dernier', () => {
-    expect(voisins('cafet-miage').prev.id).toBe('marque');
+    expect(voisins(premier.id).prev.id).toBe(dernier.id);
   });
 
   it('boucle à la fin : le suivant du dernier projet est le premier', () => {
-    expect(voisins('marque').next.id).toBe('cafet-miage');
+    expect(voisins(dernier.id).next.id).toBe(premier.id);
   });
 
   it('renvoie les projets eux-mêmes (pas des copies partielles)', () => {
-    const { prev, next } = voisins('tanks');
+    const { prev, next } = voisins(projets[1].id);
 
-    expect(prev).toBe(projetParId('volley-club'));
-    expect(next).toBe(projetParId('moto-club'));
+    expect(prev).toBe(projets[0]);
+    expect(next).toBe(projets[2]);
   });
 
-  it('forme un cycle complet sur les 8 projets, dans les deux sens', () => {
+  it('forme un cycle complet sur tous les projets, dans les deux sens', () => {
     let id = projets[0].id;
     const aller: string[] = [];
     for (let i = 0; i < projets.length; i++) {
@@ -47,7 +50,9 @@ describe('voisins', () => {
 
 describe('projetParId', () => {
   it('renvoie le projet demandé', () => {
-    expect(projetParId('tanks').titre).toBe('Tanks!');
+    for (const projet of projets) {
+      expect(projetParId(projet.id)).toBe(projet);
+    }
   });
 
   it('lève une erreur pour un id inconnu', () => {

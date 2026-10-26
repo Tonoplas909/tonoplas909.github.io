@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { profil } from '../../src/data/profil';
+import { projets } from '../../src/data/projets';
 
 const ADRESSE = 'matis.nico123@gmail.com';
 
@@ -22,11 +24,17 @@ test.describe('accueil avec JavaScript', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });
 
+  test('lit « Matis Demore » dans le titre h1, avec l’espace avant le retour à la ligne', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.locator('h1')).toHaveText(profil.nom);
+  });
+
   test('affiche le nombre de projets dans le bloc profil.ts', async ({ page }) => {
     await page.goto('/');
 
     const bloc = page.getByRole('figure', { name: 'profil.ts' });
-    await expect(bloc).toContainText('projets: 8');
+    await expect(bloc).toContainText(`projets: ${projets.length}`);
   });
 });
 

@@ -6,8 +6,10 @@ import { selectionnerImages } from './galerie';
 import { SITE } from './seo';
 
 // L'unique recherche d'images du site : les cartes, les galeries et les pages projet passent toutes par ici.
+// Les extensions sont écrites sans tenir compte de la casse (« .Png » compris), comme dans `selectionnerImages` :
+// une image acceptée par l'un doit être trouvée par l'autre, sinon elle serait écartée sans un mot.
 const modules = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/projets/*/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG,WEBP}',
+  '/src/assets/projets/*/*.{[pP][nN][gG],[jJ][pP][gG],[jJ][pP][eE][gG],[wW][eE][bB][pP]}',
   { eager: true }
 );
 

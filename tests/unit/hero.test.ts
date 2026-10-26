@@ -22,7 +22,7 @@ describe('profilLines', () => {
 
   it('calcule le nombre de projets à partir des données', () => {
     expect(ligne('fr', 'projets').value).toBe(projets.length);
-    expect(ligne('fr', 'projets').value).toBe(8);
+    expect(ligne('en', 'projets').value).toBe(projets.length);
   });
 
   it('prend les quatre premières compétences pour la stack', () => {

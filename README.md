@@ -33,45 +33,46 @@ chaque page a son pendant `hreflang` et que les deux PDF existent.
 
 ## Ajouter un projet
 
-Ajouter une entrée dans le tableau de `src/data/projets.ts` : son `id` (utilisé dans l'URL),
-son `titre`, sa `categorie` (`jeu` ou `asso`), le nom de son dépôt, ses textes `resume`,
-`description` et `points` **en français et en anglais**, sa `stack` et ses `liens` (`code`
-obligatoire, `demo` facultatif). L'ordre du tableau est l'ordre d'affichage. Les cartes, les pages
-FR et EN, le sitemap et la visionneuse suivent automatiquement. Les tests vérifient que les textes
-FR et EN ne sont pas vides et que les ids sont uniques.
+Ajouter une entrée dans le tableau de `src/data/projets.ts` : son `id` (utilisé dans l'URL et comme
+nom du dossier de ses captures), son `titre`, sa `categorie` (`jeu` ou `asso`), le nom de son dépôt,
+ses textes `resume`, `description` et `points` **en français et en anglais**, sa `stack` et ses
+`liens` (`code` obligatoire, `demo` facultatif). L'ordre du tableau est l'ordre d'affichage (les
+projets en `vedette` passent en tête sur l'accueil). Les cartes, les pages FR et EN, le sitemap, le
+compteur du héros, la visionneuse et les tests suivent automatiquement. Les tests vérifient que les
+textes FR et EN ne sont pas vides et que les ids sont uniques. Relancer ensuite `npm run build:og` et
+commiter `public/og-default.png` : l'image de partage par défaut dessine le nombre de projets.
 
-**Attention : les tests figent volontairement la liste actuelle des 8 projets** (7 jeux et 1
-projet associatif, Cafet'MIAGE), telle que la définit la spec du site. Ajouter, retirer ou
-réordonner un projet fait donc échouer `npm test` et `npm run test:e2e`, et comme le workflow de
-déploiement lance les deux avant de publier, **un push sur `main` sans ces mises à jour bloque la
-mise en ligne**. Mettre à jour les tests dans le même commit que `src/data/projets.ts` :
+**Deux garde-fous volontaires seulement.** D'abord la liste ordonnée des 8 ids de
+`tests/unit/data.test.ts` (spec §5.2) : elle échoue quand on ajoute, retire ou réordonne un projet,
+avec un message qui renvoie ici ; la mettre à jour dans le même commit que `src/data/projets.ts`
+est la seule modification de test à faire. Ensuite l'absence de lien `demo` pour Cafet'MIAGE, dans
+le même fichier (la démo publique peut montrer des données personnelles, spec §5.4) : à supprimer
+une fois la démo validée. Tout le reste est déduit des données ou du dossier des captures : comptes
+de cartes, filtres, précédent et suivant, liens « Jouer » ou « Voir le site » (présents si et
+seulement si `liens.demo` existe), vignettes et galeries. Comme le workflow de déploiement lance les
+tests avant de publier, un garde-fou resté rouge bloque la mise en ligne.
 
-| Fichier | À adapter |
-| --- | --- |
-| `tests/unit/data.test.ts` | la liste des ids dans l'ordre d'affichage, le « 7 autres en jeu » (`toHaveLength(7)`), la liste des projets en vedette |
-| `tests/unit/filtre.test.ts` | les comptes « tous » (8) et « jeu » (7), la liste des projets « asso » |
-| `tests/unit/projets.test.ts` | les voisins précédent et suivant, y compris la boucle entre le dernier projet et le premier |
-| `tests/unit/hero.test.ts` | le nombre de projets du bloc `profil.ts` (`toBe(8)`) |
-| `tests/e2e/projets.spec.ts` | les comptes de cartes (8), le filtre « Jeux » (7), « 8 projets » et « 8 projects », la liste des ids dans l'ordre d'affichage |
-| `tests/e2e/projet.spec.ts` | la liste `IDS` des projets, et les liens précédent et suivant des pages `cafet-miage` et `marque` |
-| `tests/e2e/home.spec.ts` | le `projets: 8` du bloc `profil.ts` du héros |
-
-Retirer ou renommer un projet touche aussi les tests qui s'appuient sur lui : `drift-club` (lien
-« Jouer », et sitemap dans `tests/e2e/site.spec.ts`), `pit-wall` (la seule capture),
-`cafet-miage` et `volley-club` (sans démo). Les trois projets du CV sont fixés dans
+Retirer ou renommer un projet touche aussi quelques tests qui le citent : `cafet-miage` dans
+`tests/e2e/projet.spec.ts` (page lue depuis les données) et `drift-club` dans
+`tests/e2e/site.spec.ts` (sitemap). Les trois projets du CV sont fixés dans
 `src/components/CvPage.astro` (`cafet-miage`, `drift-club`, `rallye-club`) et dans la constante
 `IDS_PROJETS_CV` de `tests/e2e/cv.spec.ts` : à modifier ensemble si l'un d'eux est retiré ou renommé.
 
 ## Ajouter des captures d'écran
 
-Déposer les images (`.png`, `.jpg`, `.jpeg` ou `.webp`) dans `src/assets/projets/<id>/`, où
-`<id>` est l'id du projet.
+Déposer les images dans `src/assets/projets/<id>/`, où `<id>` est l'id du projet. Extensions
+acceptées : `.png`, `.jpg`, `.jpeg` et `.webp`, en minuscules ou en majuscules ; les autres fichiers
+du dossier sont ignorés.
 
-- Les captures sont affichées dans l'ordre alphabétique des noms de fichier (`01.png`, `02.png`, ...).
+- Les captures sont affichées dans l'ordre naturel des noms de fichier (`2.png` avant `10.png`,
+  `01.png`, `02.png`, ...).
 - La première sert de vignette sur la carte, de première image de la galerie et d'image de partage de la page.
 - Une légende (facultative, utilisée comme texte alternatif) se donne dans le champ `legendes` du
   projet, indexé par nom de fichier : `legendes: { '01.png': { fr: '...', en: '...' } }`.
   Sans légende, un texte par défaut est généré.
+- Aucun test à modifier : les tests lisent le dossier et s'adaptent (vignettes, galerie, image de
+  partage). Les tests de navigation précédent et suivant de la visionneuse tournent dès qu'un projet
+  a au moins deux captures, et sont ignorés tant que ce n'est pas le cas.
 
 Pour une capture automatique d'une démo en ligne (1280 × 720) :
 

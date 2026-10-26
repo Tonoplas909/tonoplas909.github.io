@@ -39,20 +39,17 @@ describe('formatPeriode', () => {
 });
 
 describe('trierParcours', () => {
-  it('trie les 11 entrées du parcours dans l’ordre attendu', () => {
-    expect(trierParcours(parcours).map((e) => e.id)).toEqual([
-      'm1-miage',
-      'eng-it',
-      'flunch',
-      'himydata',
-      'but-info',
-      'qiti',
-      'intel-ia',
-      'bac',
-      'noeva',
-      'air-france',
-      'bde-miage',
-    ]);
+  it('place les entrées datées avant les autres, par début décroissant, sans en perdre', () => {
+    const tries = trierParcours(parcours);
+    const premiereSansDebut = tries.findIndex((e) => e.debut === undefined);
+
+    expect(tries.map((e) => e.id).sort()).toEqual(parcours.map((e) => e.id).sort());
+    // Aucune entrée datée après la première entrée sans début
+    if (premiereSansDebut !== -1) {
+      expect(tries.slice(premiereSansDebut).every((e) => e.debut === undefined)).toBe(true);
+    }
+    const debuts = tries.flatMap((e) => (e.debut === undefined ? [] : [e.debut]));
+    expect(debuts).toEqual([...debuts].sort((a, b) => b - a));
   });
 
   it("ne modifie pas le tableau reçu", () => {
