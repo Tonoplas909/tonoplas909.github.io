@@ -34,12 +34,12 @@ const autres = [
       {
         projet.liens.demo && (
           <a class="bouton bouton--primaire" href={projet.liens.demo} rel="noopener noreferrer">
-            {libelleDemo} ↗
+            {libelleDemo} <span aria-hidden="true">↗</span>
           </a>
         )
       }
       <a class="bouton bouton--secondaire" href={projet.liens.code} target="_blank" rel="noopener noreferrer">
-        {t(lang, 'projets.code')} ↗
+        {t(lang, 'projets.code')} <span aria-hidden="true">↗</span>
       </a>
     </div>
   </header>

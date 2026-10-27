@@ -125,14 +125,18 @@ test.describe('pages projet', () => {
           await expect(demo).toHaveAttribute('rel', /noopener/);
           await expect(demo).toHaveAttribute('rel', /noreferrer/);
           await expect(demo).toHaveClass(/bouton--primaire/);
+          // La flèche est décorative : le nom accessible reste le libellé seul (d'où le `exact: true` ci-dessus)
+          await expect(demo.locator('[aria-hidden="true"]')).toHaveText('↗');
         }
 
         const code = principal.getByRole('link', { name: t(lang, 'projets.code'), exact: true });
         await expect(code, `${etiquette} : code`).toHaveCount(1);
         await expect(code).toHaveAttribute('href', projet.liens.code);
         await expect(code).toHaveClass(/bouton--secondaire/);
+        await expect(code).toHaveAttribute('target', '_blank');
         await expect(code).toHaveAttribute('rel', /noopener/);
         await expect(code).toHaveAttribute('rel', /noreferrer/);
+        await expect(code.locator('[aria-hidden="true"]')).toHaveText('↗');
       }
     }
   });
