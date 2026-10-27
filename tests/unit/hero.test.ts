@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { competences } from '../../src/data/competences';
+import { profil } from '../../src/data/profil';
 import { projets } from '../../src/data/projets';
 import { profilLines } from '../../src/lib/hero';
 
@@ -14,9 +15,9 @@ describe('profilLines', () => {
     expect(profilLines(lang).map((l) => l.key)).toEqual([
       'formation',
       'lieu',
+      'hobbies',
       'stack',
       'projets',
-      'cap',
     ]);
   });
 
@@ -30,8 +31,14 @@ describe('profilLines', () => {
     expect(ligne('en', 'stack').value).toEqual(competences.slice(0, 4));
   });
 
-  it('traduit le cap', () => {
-    expect(ligne('fr', 'cap').value).toBe('premier CDI');
-    expect(ligne('en', 'cap').value).toBe('first permanent role');
+  it('prend les hobbies dans les centres d’intérêt du profil, dans la langue demandée', () => {
+    expect(ligne('fr', 'hobbies').value).toEqual(profil.interets.fr);
+    expect(ligne('en', 'hobbies').value).toEqual(profil.interets.en);
+  });
+
+  it('ne garde plus de ligne « cap » (l’objectif n’est plus affiché dans le hero)', () => {
+    for (const lang of ['fr', 'en'] as const) {
+      expect(profilLines(lang).map((l) => l.key)).not.toContain('cap');
+    }
   });
 });

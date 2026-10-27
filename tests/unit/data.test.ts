@@ -137,7 +137,7 @@ describe('profil', () => {
     expect(json).not.toMatch(/(?:\+33|0)\s?[67](?:[\s.-]?\d{2}){4}/);
   });
 
-  it('a un intitulé, une formation et un objectif dans les deux langues', () => {
+  it('a un intitulé, une formation, des langues et des centres d’intérêt dans les deux langues', () => {
     for (const lang of LANGUES) {
       expect(profil.intitule[lang].trim()).not.toBe('');
       expect(profil.formation[lang].trim()).not.toBe('');
