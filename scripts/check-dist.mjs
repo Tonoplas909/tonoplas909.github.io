@@ -5,6 +5,7 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SECTIONS, sectionPath } from '../src/lib/routes.ts';
 import { findForbiddenMatches, missingAlternates, pdfHasLink, pdfPageCount } from './lib/check.mjs';
 
 const DIST = process.argv[2]
@@ -14,7 +15,11 @@ const EMAIL = 'mailto:matis.nico123@gmail.com';
 const PDF_TAILLE_MIN = 10 * 1024;
 const PDFS = ['Matis-Demore-CV.pdf', 'Matis-Demore-CV-EN.pdf'];
 // Pages qui doivent exister : sans elles, `missingAlternates` ne verrait rien à reprocher à un site vide.
-const PAGES_REQUISES = ['/', '/en/', '/cv/', '/en/cv/'];
+const PAGES_REQUISES = [
+  '/',
+  '/en/',
+  ...SECTIONS.flatMap((section) => [sectionPath('fr', section), sectionPath('en', section)]),
+];
 
 const anomalies = [];
 const signaler = (fichier, message) => anomalies.push(`${fichier} : ${message}`);

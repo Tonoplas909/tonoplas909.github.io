@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { competences } from '../../src/data/competences';
+import { competences, groupesCompetences } from '../../src/data/competences';
+import { projetsUtilisant } from '../../src/lib/competences';
 import { parcours } from '../../src/data/parcours';
 import { profil } from '../../src/data/profil';
 import { projets } from '../../src/data/projets';
@@ -117,6 +118,26 @@ describe('competences', () => {
     }
     expect(new Set(competences).size).toBe(competences.length);
   });
+
+  it('sont toutes rangées dans un groupe de la page Compétences, une seule fois', () => {
+    const noms = groupesCompetences.flatMap((groupe) => groupe.items.map((item) => item.nom));
+    expect(new Set(noms).size).toBe(noms.length);
+    for (const competence of competences) expect(noms, competence).toContain(competence);
+  });
+
+  it('ne listent sur la page que des technos du CV ou d’au moins un projet (rien d’inventé)', () => {
+    for (const { nom } of groupesCompetences.flatMap((groupe) => groupe.items)) {
+      const connue = competences.includes(nom) || projetsUtilisant(nom).length > 0;
+      expect(connue, nom).toBe(true);
+    }
+  });
+
+  it('ne citent comme contexte que des entreprises présentes dans le parcours', () => {
+    const titres = parcours.map((entree) => entree.titre.fr).join(' ');
+    for (const { nom, contextes = [] } of groupesCompetences.flatMap((groupe) => groupe.items)) {
+      for (const contexte of contextes) expect(titres, `${nom} : ${contexte}`).toContain(contexte);
+    }
+  });
 });
 
 describe('profil', () => {
@@ -125,6 +146,16 @@ describe('profil', () => {
       github: 'https://github.com/Tonoplas909',
       linkedin: 'https://www.linkedin.com/in/matis-demore-31609a267/',
     });
+  });
+
+  it('donne un statut cohérent : une fin d’alternance seulement quand il est indisponible', () => {
+    if (profil.statut.disponible) {
+      expect(profil.statut.finAlternance).toBeUndefined();
+    } else if (profil.statut.finAlternance) {
+      const { annee, mois } = profil.statut.finAlternance;
+      expect(Number.isInteger(annee) && annee >= 2026).toBe(true);
+      expect(Number.isInteger(mois) && mois >= 1 && mois <= 12).toBe(true);
+    }
   });
 
   it("stocke l'e-mail en deux morceaux", () => {

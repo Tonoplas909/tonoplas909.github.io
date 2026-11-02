@@ -1,0 +1,11 @@
+---
+import PageCompetences from '../../components/PageCompetences.astro';
+import { t } from '../../i18n/ui';
+import Base from '../../layouts/Base.astro';
+
+const lang = 'en';
+---
+
+<Base lang={lang} title={t(lang, 'competences.page.titre')} description={t(lang, 'competences.page.description')}>
+  <PageCompetences lang={lang} />
+</Base>

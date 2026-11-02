@@ -1,0 +1,11 @@
+---
+import PageContact from '../../components/PageContact.astro';
+import { t } from '../../i18n/ui';
+import Base from '../../layouts/Base.astro';
+
+const lang = 'en';
+---
+
+<Base lang={lang} title={t(lang, 'contact.page.titre')} description={t(lang, 'contact.page.description')}>
+  <PageContact lang={lang} />
+</Base>

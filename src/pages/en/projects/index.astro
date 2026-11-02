@@ -1,0 +1,11 @@
+---
+import PageProjets from '../../../components/PageProjets.astro';
+import { t } from '../../../i18n/ui';
+import Base from '../../../layouts/Base.astro';
+
+const lang = 'en';
+---
+
+<Base lang={lang} title={t(lang, 'projets.page.titre')} description={t(lang, 'projets.page.description')}>
+  <PageProjets lang={lang} />
+</Base>

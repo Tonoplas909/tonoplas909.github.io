@@ -1,5 +1,7 @@
 /* Impression des pages CV (spec §6.3) : document A4 clair, sur une seule page.
    Chargée par CvPage.astro uniquement, donc absente du reste du site. */
+@import '@fontsource/geist/latin-400.css';
+@import '@fontsource/geist/latin-600.css';
 
 @page {
   size: A4;
@@ -20,6 +22,7 @@
     min-height: 0;
     background: #fff;
     color: #0f1b2d;
+    font-family: var(--font-texte);
     font-size: 10pt;
     line-height: 1.4;
   }
@@ -35,12 +38,30 @@
     display: block;
   }
 
+  /* Page CV : seule la feuille s'imprime. Retour au noyau, titre de la section, boutons PDF, légende de
+     l'aperçu et lien vers la section suivante disparaissent ; leurs conteneurs perdent marges et ombres. */
+  .no-print {
+    display: none !important;
+  }
+
+  .page-section,
+  .apercu {
+    display: block !important;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    animation: none !important;
+  }
+
   .cv {
     display: block;
     width: auto;
     max-width: none;
     margin: 0;
     padding: 0;
+    background: none;
+    box-shadow: none;
+    color: #0f1b2d;
   }
 
   .cv a {
@@ -51,7 +72,7 @@
   /* En-tête du CV */
   .cv-nom {
     margin: 0;
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-size: 22pt;
     font-weight: 700;
     line-height: 1.1;

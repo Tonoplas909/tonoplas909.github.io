@@ -1,0 +1,876 @@
+---
+// Accueil (spec 2026-11-02 §3) : le noyau en fil de fer et ses six nœuds. La scène est calculée ici pour un
+// premier rendu fixe (sans JavaScript, tout reste lisible et chaque nœud est un lien), puis le script
+// l'anime avec les mêmes calculs (lib/noyau.ts).
+import { competences } from '../data/competences';
+import { parcours } from '../data/parcours';
+import { profil } from '../data/profil';
+import { projets } from '../data/projets';
+import type { Lang } from '../data/types';
+import { remplir, t } from '../i18n/ui';
+import {
+  GABARITS,
+  NOEUDS,
+  calculerScene,
+  grille,
+  ombre,
+  type NoeudId,
+  type NomGabarit,
+  type PlacementNoeud,
+} from '../lib/noyau';
+import { numeroSection, sectionPath } from '../lib/routes';
+import { statut } from '../lib/statut';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+interface Libelle {
+  numero: string;
+  tag: string;
+  titre: string;
+  sous: string;
+  href: string;
+}
+
+const etat = statut(lang);
+const jouables = projets.filter((projet) => projet.categorie === 'jeu' && projet.liens.demo).length;
+const debuts = parcours.flatMap((entree) => (entree.debut === undefined ? [] : [entree.debut]));
+
+const libelles: Record<NoeudId, Libelle> = {
+  projets: {
+    numero: numeroSection('projets'),
+    tag: t(lang, 'noeud.projets.tag'),
+    titre: t(lang, 'nav.projets'),
+    sous: remplir(t(lang, 'noeud.projets.sous'), { n: projets.length, j: jouables }),
+    href: sectionPath(lang, 'projets'),
+  },
+  parcours: {
+    numero: numeroSection('parcours'),
+    tag: t(lang, 'noeud.parcours.tag'),
+    titre: t(lang, 'nav.parcours'),
+    sous: remplir(t(lang, 'noeud.parcours.sous'), { debut: Math.min(...debuts) }),
+    href: sectionPath(lang, 'parcours'),
+  },
+  competences: {
+    numero: numeroSection('competences'),
+    tag: t(lang, 'noeud.competences.tag'),
+    titre: t(lang, 'nav.competences'),
+    sous: competences.slice(0, 4).join(' · '),
+    href: sectionPath(lang, 'competences'),
+  },
+  cv: {
+    numero: numeroSection('cv'),
+    tag: t(lang, 'noeud.cv.tag'),
+    titre: t(lang, 'nav.cv'),
+    sous: t(lang, 'noeud.cv.sous'),
+    href: sectionPath(lang, 'cv'),
+  },
+  contact: {
+    numero: numeroSection('contact'),
+    tag: t(lang, 'noeud.contact.tag'),
+    titre: t(lang, 'nav.contact'),
+    sous: t(lang, 'noeud.contact.sous'),
+    href: sectionPath(lang, 'contact'),
+  },
+  statut: {
+    numero: '06',
+    tag: t(lang, 'noeud.statut.tag'),
+    titre: etat.titre,
+    sous: etat.court,
+    href: `${sectionPath(lang, 'contact')}#statut`,
+  },
+};
+
+const pourcent = (valeur: number, total: number) => `${((valeur / total) * 100).toFixed(2)}%`;
+
+/** Style d'un nœud : position, profondeur (taille, halo, opacité) et ordre d'empilement. */
+function styleNoeud(n: PlacementNoeud, nom: NomGabarit): string {
+  const g = GABARITS[nom];
+  return [
+    `left: ${pourcent(n.x, g.largeur)}`,
+    `top: ${pourcent(n.y, g.hauteur)}`,
+    `--p: ${n.profondeur.toFixed(3)}`,
+    `z-index: ${Math.round(10 + n.z * 10)}`,
+  ].join('; ');
+}
+
+const scenes = (['large', 'compact'] as const).map((nom) => {
+  const g = GABARITS[nom];
+  const scene = calculerScene(g, { yaw: 0, pitch: 0 });
+  return { nom, g, scene, sol: grille(g), pied: ombre(g) };
+});
+---
+
+<div class="accueil" data-accueil>
+  {
+    scenes.map(({ nom, g, scene, sol, pied }) => (
+      <div class={`scene scene--${nom}`} data-scene={nom} style={`aspect-ratio: ${g.largeur} / ${g.hauteur}`}>
+        <div class="plateau" data-plateau>
+          <svg class="trace" viewBox={`0 0 ${g.largeur} ${g.hauteur}`} aria-hidden="true">
+            <defs>
+              <linearGradient
+                id={`fondu-${nom}`}
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1={g.cy + g.echelle * 1.6}
+                x2="0"
+                y2={g.hauteur}
+              >
+                <stop offset="0" stop-color="#7cf7ff" stop-opacity="0" />
+                <stop offset="1" stop-color="#7cf7ff" stop-opacity="0.3" />
+              </linearGradient>
+              <radialGradient id={`halo-${nom}`} cx={g.cx} cy={g.cy} r={g.echelle * 3} gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#7cf7ff" stop-opacity="0.14" />
+                <stop offset="1" stop-color="#7cf7ff" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+            <path d={sol} fill="none" stroke={`url(#fondu-${nom})`} stroke-width="1" />
+            <ellipse cx={pied.x} cy={pied.y} rx={g.echelle * 2} ry={g.echelle * 0.26} class="ombre" />
+            <path d={`M${g.cx} ${(g.cy + g.echelle * 2.2).toFixed(1)}V${pied.y.toFixed(1)}`} class="plomb" />
+            <circle cx={g.cx} cy={g.cy} r={g.echelle * 3} fill={`url(#halo-${nom})`} />
+            <path d={scene.anneaux.arriere} class="t-anneau-arriere" data-trace="anneaux.arriere" />
+            <path d={scene.liens.arriere} class="t-lien-arriere" data-trace="liens.arriere" />
+            <path d={scene.noyau.arriere} class="t-noyau-arriere" data-trace="noyau.arriere" />
+            <path d={scene.interieur.avant} class="t-interieur" data-trace="interieur.avant" />
+            <path d={scene.noyau.avant} class="t-noyau-avant" data-trace="noyau.avant" />
+            <path d={scene.noyau.sommets} class="t-sommets" data-trace="noyau.sommets" />
+            <path d={scene.anneaux.avant} class="t-anneau-avant" data-trace="anneaux.avant" />
+            <path d={scene.liens.avant} class="t-lien-avant" data-trace="liens.avant" />
+            <path d={scene.liens.statut} class="t-lien-statut" data-trace="liens.statut" />
+            <path d={scene.ancres} class="t-ancres" data-trace="ancres" />
+          </svg>
+
+          <span class="md" aria-hidden="true" style={`left: ${pourcent(g.cx, g.largeur)}; top: ${pourcent(g.cy, g.hauteur)}`}>
+            MD
+          </span>
+
+          {NOEUDS.map((id) => {
+            const placement = scene.noeuds.find((n) => n.id === id) as PlacementNoeud;
+            const libelle = libelles[id];
+            const gauche = placement.x < g.cx;
+            return nom === 'large' ? (
+              <a
+                class:list={['noeud', { 'noeud--gauche': gauche, 'noeud--statut': id === 'statut' }]}
+                href={libelle.href}
+                data-noeud={id}
+                style={styleNoeud(placement, nom)}
+              >
+                <span class="noeud-point" aria-hidden="true" />
+                <span class="noeud-carte">
+                  <span class="noeud-tag">
+                    {libelle.numero} · {libelle.tag}
+                  </span>
+                  <span class="noeud-titre">{libelle.titre}</span>
+                  <span class="noeud-sous">{libelle.sous}</span>
+                </span>
+              </a>
+            ) : (
+              <a
+                class:list={['noeud noeud--compact', { 'noeud--gauche': gauche, 'noeud--statut': id === 'statut' }]}
+                href={libelle.href}
+                data-noeud={id}
+                aria-label={`${libelle.numero} · ${libelle.titre}`}
+                style={styleNoeud(placement, nom)}
+              >
+                <span class="noeud-point" aria-hidden="true" />
+                <span class="noeud-carte">{libelle.numero}</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    ))
+  }
+
+  <section class="presentation" data-fondu>
+    <p class="surtitre">{t(lang, 'hero.surtitre')}</p>
+    <h1>{profil.nom}</h1>
+    <p class="accroche">{t(lang, 'hero.accroche')}</p>
+  </section>
+
+  <nav class="liste" aria-label={t(lang, 'nav.label')} data-fondu>
+    {
+      NOEUDS.map((id) => (
+        <a class:list={['ligne', { 'ligne--statut': id === 'statut' }]} href={libelles[id].href}>
+          <span class="ligne-numero">{libelles[id].numero}</span>
+          <span class="ligne-textes">
+            <span class="ligne-titre">{libelles[id].titre}</span>
+            <span class="ligne-sous">{libelles[id].sous}</span>
+          </span>
+          <span class="ligne-fleche" aria-hidden="true">
+            →
+          </span>
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="commandes" data-fondu>
+    <span class="aide" aria-hidden="true">{t(lang, 'noyau.aide')}</span>
+    <button
+      type="button"
+      class="pause"
+      data-pause
+      data-libelle-pause={t(lang, 'noyau.pause')}
+      data-libelle-reprendre={t(lang, 'noyau.reprendre')}
+      aria-pressed="false"
+      hidden
+    >
+      {t(lang, 'noyau.pause')}
+    </button>
+  </div>
+</div>
+
+<script>
+  import {
+    GABARITS,
+    balancement,
+    calculerScene,
+    orientationVers,
+    type NoeudId,
+    type NomGabarit,
+    type Orientation,
+    type Scene,
+  } from '../lib/noyau';
+
+  interface VueScene {
+    el: HTMLElement;
+    plateau: HTMLElement;
+    nom: NomGabarit;
+    traces: Map<string, SVGPathElement>;
+    noeuds: Map<NoeudId, HTMLAnchorElement>;
+  }
+
+  interface Plongee {
+    vue: VueScene;
+    id: NoeudId;
+    href: string;
+    debut: number;
+    depart: Orientation;
+    cible: Orientation;
+  }
+
+  const DUREE_PLONGEE = 950;
+  // Amorti : la part de l'écart rattrapée en 40 ms (rendue indépendante de la cadence d'affichage)
+  const AMORTI = 0.07;
+  const AMORTI_PLONGEE = 0.14;
+
+  const racine = document.querySelector<HTMLElement>('[data-accueil]');
+  if (racine) demarrer(racine);
+
+  function demarrer(racine: HTMLElement) {
+    const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const vues: VueScene[] = Array.from(racine.querySelectorAll<HTMLElement>('[data-scene]')).map((el) => ({
+      el,
+      plateau: el.querySelector<HTMLElement>('[data-plateau]') as HTMLElement,
+      nom: el.dataset.scene as NomGabarit,
+      traces: new Map(
+        Array.from(el.querySelectorAll<SVGPathElement>('[data-trace]')).map((p) => [p.dataset.trace as string, p]),
+      ),
+      noeuds: new Map(
+        Array.from(el.querySelectorAll<HTMLAnchorElement>('[data-noeud]')).map((a) => [a.dataset.noeud as NoeudId, a]),
+      ),
+    }));
+    const fondus = Array.from(racine.querySelectorAll<HTMLElement>('[data-fondu]'));
+    const bouton = racine.querySelector<HTMLButtonElement>('[data-pause]');
+
+    let orientation: Orientation = { yaw: 0, pitch: 0 };
+    let temps = 0;
+    let enPause = mouvementReduit.matches;
+    let souris: { x: number; y: number } | null = null;
+    let plongee: Plongee | null = null;
+    let precedent = performance.now();
+    let boucle = 0;
+
+    const visible = (vue: VueScene) => vue.el.offsetParent !== null;
+
+    // Chaque <path data-trace="…"> et le tracé de la scène qui l'alimente
+    const TRACES: Record<string, (scene: Scene) => string> = {
+      'anneaux.arriere': (scene) => scene.anneaux.arriere,
+      'anneaux.avant': (scene) => scene.anneaux.avant,
+      'liens.arriere': (scene) => scene.liens.arriere,
+      'liens.avant': (scene) => scene.liens.avant,
+      'liens.statut': (scene) => scene.liens.statut,
+      'noyau.arriere': (scene) => scene.noyau.arriere,
+      'noyau.avant': (scene) => scene.noyau.avant,
+      'noyau.sommets': (scene) => scene.noyau.sommets,
+      'interieur.avant': (scene) => scene.interieur.avant,
+      ancres: (scene) => scene.ancres,
+    };
+    const lire = (scene: Scene, cle: string) => TRACES[cle]?.(scene) ?? '';
+
+    function dessiner(vue: VueScene) {
+      const g = GABARITS[vue.nom];
+      const scene = calculerScene(g, orientation);
+      for (const [cle, chemin] of vue.traces) chemin.setAttribute('d', lire(scene, cle));
+      for (const n of scene.noeuds) {
+        const lien = vue.noeuds.get(n.id);
+        if (!lien) continue;
+        lien.style.left = `${((n.x / g.largeur) * 100).toFixed(2)}%`;
+        lien.style.top = `${((n.y / g.hauteur) * 100).toFixed(2)}%`;
+        lien.style.setProperty('--p', n.profondeur.toFixed(3));
+        lien.style.zIndex = String(Math.round(10 + n.z * 10));
+        lien.classList.toggle('noeud--gauche', n.x < g.cx);
+      }
+    }
+
+    const tout = () => vues.filter(visible).forEach(dessiner);
+
+    const rapprocher = (de: number, vers: number, part: number) => de + (vers - de) * part;
+    const lisser = (x: number) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
+
+    function image(maintenant: number) {
+      const dt = Math.min(0.05, (maintenant - precedent) / 1000);
+      precedent = maintenant;
+      boucle = 0;
+
+      if (plongee) {
+        avancerPlongee(plongee, maintenant, dt);
+        return;
+      }
+      if (enPause) return;
+
+      temps += dt;
+      const cible: Orientation = souris
+        ? { yaw: souris.x * 1.2, pitch: -souris.y * 0.7 }
+        : { yaw: balancement(temps), pitch: 0 };
+      const part = 1 - (1 - AMORTI) ** (dt / 0.04);
+      orientation = {
+        yaw: rapprocher(orientation.yaw, cible.yaw, part),
+        pitch: rapprocher(orientation.pitch, cible.pitch, part),
+      };
+      tout();
+      relancer();
+    }
+
+    function relancer() {
+      if (boucle === 0) boucle = requestAnimationFrame(image);
+    }
+
+    function avancerPlongee(p: Plongee, maintenant: number, dt: number) {
+      const avancement = Math.min(1, (maintenant - p.debut) / DUREE_PLONGEE);
+      const part = 1 - (1 - AMORTI_PLONGEE) ** (dt / 0.04);
+      orientation = {
+        yaw: rapprocher(orientation.yaw, p.cible.yaw, part),
+        pitch: rapprocher(orientation.pitch, p.cible.pitch, part),
+      };
+      dessiner(p.vue);
+
+      // La caméra plonge vers le nœud : le zoom accélère, puis la scène s'efface
+      const lisse = lisser(avancement);
+      const lien = p.vue.noeuds.get(p.id);
+      if (lien) p.vue.plateau.style.transformOrigin = `${lien.style.left} ${lien.style.top}`;
+      p.vue.plateau.style.transform = `scale(${(1 + lisse * lisse * 6).toFixed(3)})`;
+      p.vue.plateau.style.opacity = String(1 - Math.min(1, Math.max(0, (avancement - 0.5) / 0.35)));
+      const fondu = String(1 - Math.min(1, avancement * 2.5));
+      for (const el of fondus) el.style.opacity = fondu;
+
+      if (avancement >= 1) {
+        window.location.assign(p.href);
+        return;
+      }
+      relancer();
+    }
+
+    function reinitialiser() {
+      plongee = null;
+      for (const vue of vues) {
+        vue.plateau.style.transform = '';
+        vue.plateau.style.opacity = '';
+      }
+      for (const el of fondus) el.style.opacity = '';
+      tout();
+    }
+
+    function majBouton() {
+      if (!bouton) return;
+      bouton.hidden = false;
+      bouton.setAttribute('aria-pressed', String(enPause));
+      bouton.textContent = (enPause ? bouton.dataset.libelleReprendre : bouton.dataset.libellePause) ?? '';
+    }
+
+    bouton?.addEventListener('click', () => {
+      enPause = !enPause;
+      majBouton();
+      precedent = performance.now();
+      relancer();
+    });
+
+    racine.addEventListener('pointermove', (evenement) => {
+      if (evenement.pointerType !== 'mouse') return;
+      const vue = vues.find(visible);
+      if (!vue) return;
+      const g = GABARITS[vue.nom];
+      const cadre = vue.el.getBoundingClientRect();
+      souris = {
+        x: Math.max(-0.5, Math.min(0.5, (evenement.clientX - cadre.left) / cadre.width - 0.5)),
+        y: Math.max(-0.5, Math.min(0.5, (evenement.clientY - cadre.top) / cadre.height - g.cy / g.hauteur)),
+      };
+    });
+    racine.addEventListener('pointerleave', () => {
+      souris = null;
+    });
+
+    for (const vue of vues) {
+      for (const [id, lien] of vue.noeuds) {
+        lien.addEventListener('click', (evenement) => {
+          // Nouvel onglet, téléchargement, mouvement réduit ou pause : le lien garde son comportement normal
+          if (
+            evenement.defaultPrevented ||
+            evenement.button !== 0 ||
+            evenement.metaKey ||
+            evenement.ctrlKey ||
+            evenement.shiftKey ||
+            evenement.altKey ||
+            mouvementReduit.matches ||
+            enPause ||
+            plongee
+          ) {
+            return;
+          }
+          evenement.preventDefault();
+          plongee = {
+            vue,
+            id,
+            href: lien.href,
+            debut: performance.now(),
+            depart: { ...orientation },
+            cible: orientationVers(id),
+          };
+          relancer();
+        });
+      }
+    }
+
+    // Retour arrière depuis une section (cache du navigateur) : la scène repart de zéro
+    window.addEventListener('pageshow', (evenement) => {
+      if (!evenement.persisted) return;
+      reinitialiser();
+      precedent = performance.now();
+      relancer();
+    });
+
+    mouvementReduit.addEventListener('change', () => {
+      enPause = mouvementReduit.matches || enPause;
+      majBouton();
+    });
+
+    majBouton();
+    tout();
+    relancer();
+  }
+</script>
+
+<style>
+  .accueil {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100svh - 74px);
+    overflow: hidden;
+  }
+
+  .scene {
+    position: relative;
+    width: 100%;
+  }
+
+  .plateau {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+  }
+
+  .trace {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+  }
+
+  .ombre {
+    fill: var(--accent);
+    fill-opacity: 0.07;
+  }
+
+  .plomb {
+    stroke: var(--accent);
+    stroke-opacity: 0.35;
+    stroke-dasharray: 2 5;
+  }
+
+  .t-anneau-arriere {
+    stroke: var(--accent);
+    stroke-opacity: 0.18;
+    stroke-dasharray: 2 6;
+  }
+
+  .t-lien-arriere {
+    stroke: var(--accent);
+    stroke-opacity: 0.3;
+  }
+
+  .t-noyau-arriere {
+    stroke: var(--accent);
+    stroke-opacity: 0.22;
+    stroke-dasharray: 3 4;
+  }
+
+  .t-interieur {
+    stroke: var(--text);
+    stroke-opacity: 0.32;
+  }
+
+  .t-noyau-avant {
+    stroke: var(--accent);
+    stroke-opacity: 0.95;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+
+  .t-sommets {
+    fill: var(--accent);
+  }
+
+  .t-anneau-avant {
+    stroke: var(--accent);
+    stroke-opacity: 0.55;
+    stroke-width: 1.2;
+  }
+
+  .t-lien-avant {
+    stroke: var(--accent);
+    stroke-opacity: 0.75;
+    stroke-width: 1.2;
+  }
+
+  .t-lien-statut {
+    stroke: var(--statut);
+    stroke-opacity: 0.85;
+    stroke-width: 1.4;
+  }
+
+  .t-ancres {
+    fill: var(--bg);
+    stroke: var(--accent);
+    stroke-width: 1.2;
+  }
+
+  .md {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-display);
+    font-size: clamp(16px, 2.2vw, 30px);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+  }
+
+  /* Nœuds : un point (dont la taille suit la profondeur --p) et une carte à côté */
+  .noeud {
+    --taille: calc(7px + 9px * var(--p));
+    --couleur: var(--accent);
+    --halo: var(--accent-halo);
+    position: absolute;
+    width: 0;
+    height: 0;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .noeud--statut {
+    --couleur: var(--statut);
+    --halo: var(--statut-halo);
+  }
+
+  .noeud:focus-visible {
+    outline: none;
+  }
+
+  .noeud-point {
+    position: absolute;
+    left: calc(var(--taille) / -2);
+    top: calc(var(--taille) / -2);
+    width: var(--taille);
+    height: var(--taille);
+    border-radius: 50%;
+    background: var(--couleur);
+    box-shadow: 0 0 0 calc(6px * var(--p)) var(--halo);
+    opacity: calc(0.55 + 0.45 * var(--p));
+  }
+
+  .noeud-carte {
+    position: absolute;
+    top: 0;
+    left: calc(var(--taille) / 2 + 12px);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-height: var(--target);
+    padding: 9px 14px;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    background: rgba(8, 12, 18, 0.85);
+    border: 1px solid rgba(124, 247, 255, calc(0.2 + 0.8 * var(--p)));
+    border-radius: 4px;
+    opacity: calc(0.82 + 0.18 * var(--p));
+  }
+
+  .noeud--statut .noeud-carte {
+    border-color: rgba(255, 122, 61, calc(0.35 + 0.65 * var(--p)));
+  }
+
+  .noeud--gauche .noeud-carte {
+    left: auto;
+    right: calc(var(--taille) / 2 + 12px);
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .noeud:hover .noeud-carte,
+  .noeud:focus-visible .noeud-carte {
+    border-color: var(--couleur);
+    background: rgba(8, 12, 18, 0.96);
+  }
+
+  .noeud:focus-visible .noeud-carte {
+    outline: 2px solid var(--couleur);
+    outline-offset: 3px;
+  }
+
+  .noeud-tag {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--couleur);
+  }
+
+  .noeud-titre {
+    font-family: var(--font-display);
+    font-size: calc(15px + 9px * var(--p));
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  .noeud--statut .noeud-titre {
+    color: var(--statut);
+  }
+
+  .noeud-sous {
+    font-size: calc(11px + 2px * var(--p));
+    color: var(--text-2);
+  }
+
+  /* Nœud compact (téléphone) : le numéro seul, la liste détaillée suit la scène */
+  .noeud--compact .noeud-carte {
+    left: calc(var(--taille) / 2 + 6px);
+    min-height: 0;
+    padding: 2px 6px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--couleur);
+  }
+
+  .noeud--compact.noeud--gauche .noeud-carte {
+    left: auto;
+    right: calc(var(--taille) / 2 + 6px);
+  }
+
+  /* La cible tactile fait 44 px autour du point */
+  .noeud--compact::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: -22px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .presentation {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .surtitre {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+
+  .accroche {
+    max-width: 560px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-3);
+  }
+
+  .commandes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pause {
+    min-height: var(--target);
+    padding: 0 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .pause:hover {
+    border-color: var(--accent);
+  }
+
+  .liste {
+    display: none;
+  }
+
+  /* Ordinateur : la scène occupe l'écran, le nom en bas à gauche, les commandes en bas à droite */
+  @media (min-width: 761px) {
+    .scene--large {
+      width: min(100%, calc((100svh - 74px) * 1200 / 760));
+    }
+
+    .scene--compact {
+      display: none;
+    }
+
+    .presentation {
+      position: absolute;
+      left: var(--gutter);
+      bottom: 40px;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: clamp(40px, min(5vw, 8.5svh), 76px);
+      white-space: nowrap;
+    }
+
+    .commandes {
+      position: absolute;
+      right: var(--gutter);
+      bottom: 40px;
+      z-index: 1;
+    }
+  }
+
+  /* Téléphone : la scène compacte, puis le nom, la liste des sections et les commandes */
+  @media (max-width: 760px) {
+    .accueil {
+      min-height: 0;
+      gap: 28px;
+      padding-bottom: 32px;
+    }
+
+    .scene--large {
+      display: none;
+    }
+
+    .scene--compact {
+      max-width: 440px;
+    }
+
+    .presentation,
+    .liste,
+    .commandes {
+      width: 100%;
+      padding-inline: var(--gutter);
+    }
+
+    h1 {
+      font-size: clamp(38px, 12vw, 48px);
+    }
+
+    .liste {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ligne {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) 20px;
+      align-items: center;
+      gap: 10px;
+      min-height: 68px;
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .ligne:first-child {
+      border-top: 1px solid var(--line);
+    }
+
+    .ligne-numero {
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .ligne-textes {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .ligne-titre {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .ligne-sous {
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+
+    .ligne-fleche {
+      color: var(--accent);
+    }
+
+    .ligne--statut .ligne-numero,
+    .ligne--statut .ligne-titre,
+    .ligne--statut .ligne-fleche {
+      color: var(--statut);
+    }
+
+    .commandes {
+      align-items: flex-start;
+    }
+
+    /* Pas de souris sur un téléphone : l'aide ne servirait à rien */
+    .aide {
+      display: none;
+    }
+  }
+</style>

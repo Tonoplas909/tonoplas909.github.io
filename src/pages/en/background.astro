@@ -1,0 +1,11 @@
+---
+import PageParcours from '../../components/PageParcours.astro';
+import { t } from '../../i18n/ui';
+import Base from '../../layouts/Base.astro';
+
+const lang = 'en';
+---
+
+<Base lang={lang} title={t(lang, 'parcours.page.titre')} description={t(lang, 'parcours.page.description')}>
+  <PageParcours lang={lang} />
+</Base>

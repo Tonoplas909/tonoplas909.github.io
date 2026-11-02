@@ -9,10 +9,11 @@ interface Props {
 }
 
 const { lang } = Astro.props;
+const annee = new Date().getFullYear();
 ---
 
-<footer id="contact" class="container site-footer" aria-label={t(lang, 'nav.contact')}>
-  <span class="invite" aria-hidden="true">$ contact --matis</span>
+<footer class="site-footer" aria-label={t(lang, 'nav.contact')}>
+  <span class="mentions">© {annee} {profil.nom} · {t(lang, 'pied.mentions')}</span>
   <div class="liens">
     <Contact lang={lang} />
     <a href={profil.liens.github} rel="noopener noreferrer">GitHub</a>
@@ -26,15 +27,14 @@ const { lang } = Astro.props;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px 32px;
-    padding-top: 32px;
-    padding-bottom: 56px;
+    gap: 4px 32px;
+    padding: 16px var(--gutter);
     border-top: 1px solid var(--line);
-    font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
   }
 
-  .invite {
+  .mentions {
     color: var(--muted);
   }
 
@@ -48,6 +48,11 @@ const { lang } = Astro.props;
     display: inline-flex;
     align-items: center;
     min-height: var(--target);
+    color: var(--text);
     text-decoration: none;
+  }
+
+  .liens a:hover {
+    color: var(--accent-hover);
   }
 </style>

@@ -1,0 +1,346 @@
+---
+import { parcours } from '../data/parcours';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { formatPeriode, trierParcours } from '../lib/parcours';
+import { cvPath, sectionPath } from '../lib/routes';
+import { statut } from '../lib/statut';
+import PageSection from './PageSection.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const entrees = trierParcours(parcours).map((entree) => ({
+  id: entree.id,
+  type: entree.type,
+  enCours: entree.fin === null,
+  compact: entree.type === 'stage',
+  periode: formatPeriode(entree, lang),
+  titre: entree.titre[lang],
+  detail: entree.detail?.[lang],
+}));
+const enCours = entrees.filter((entree) => entree.enCours);
+const etat = statut(lang);
+---
+
+<PageSection lang={lang} section="parcours" titre={t(lang, 'parcours.titre')} lead={t(lang, 'parcours.lead')}>
+  <div class="disposition">
+    <ol class="frise" aria-label={t(lang, 'parcours.titre')}>
+      {
+        entrees.map((entree) => (
+          <li
+            class:list={[
+              'entree',
+              `entree--${entree.type}`,
+              { 'entree--compacte': entree.compact, 'entree--en-cours': entree.enCours },
+            ]}
+          >
+            <span class="periode">{entree.periode}</span>
+            <span class="noeud" aria-hidden="true" />
+            {entree.compact ? (
+              <span class="contenu contenu--compact">
+                <span class="titre-compact">{entree.titre}</span>
+                {entree.detail && <span class="detail"> · {entree.detail}</span>}
+              </span>
+            ) : (
+              <span class="contenu">
+                <span class="titre">{entree.titre}</span>
+                {entree.detail && <span class="detail">{entree.detail}</span>}
+              </span>
+            )}
+            <span class="type">{t(lang, `type.${entree.type}`)}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <aside class="cote">
+      {
+        enCours.length > 0 && (
+          <div class="encadre encadre--accent">
+            <span class="etiquette encadre-etiquette">{t(lang, 'parcours.encours')}</span>
+            <ul class="encours">
+              {enCours.map((entree) => (
+                <li>{entree.titre}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+      <div class:list={['encadre', etat.disponible ? 'encadre--accent' : 'encadre--statut']}>
+        <span class="etiquette encadre-etiquette">{etat.titre}</span>
+        <span class="statut-detail">{etat.detail}</span>
+        <a class="encadre-lien" href={`${sectionPath(lang, 'contact')}#statut`}>
+          {t(lang, etat.disponible ? 'nav.contact' : 'statut.ecrire')} <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <a class="pdf" href={cvPath(lang)}>
+        <span>{t(lang, 'parcours.pdf')}</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </aside>
+  </div>
+</PageSection>
+
+<style>
+  .disposition {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 40px 56px;
+  }
+
+  .frise {
+    flex: 999 1 560px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Une ligne verticale relie les nœuds : elle passe au centre de la deuxième colonne */
+  .entree {
+    display: grid;
+    grid-template-columns: 150px 40px minmax(0, 1fr) auto;
+    align-items: start;
+    background: linear-gradient(var(--line-strong), var(--line-strong)) 170px 0 / 1px 100% no-repeat;
+  }
+
+  .entree:last-child {
+    background-size: 1px 26px;
+  }
+
+  .periode {
+    padding: 22px 0;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .entree--en-cours .periode {
+    color: var(--accent);
+  }
+
+  .noeud {
+    justify-self: center;
+    width: 10px;
+    height: 10px;
+    margin-top: 26px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .entree--en-cours .noeud {
+    width: 12px;
+    height: 12px;
+    margin-top: 25px;
+    border: 0;
+    background: var(--accent);
+    box-shadow: 0 0 0 5px var(--accent-halo);
+  }
+
+  .entree--distinction .noeud {
+    width: 11px;
+    height: 11px;
+    border-color: var(--statut);
+    border-radius: 0;
+    transform: rotate(45deg);
+  }
+
+  .entree--compacte .noeud {
+    width: 6px;
+    height: 6px;
+    margin-top: 22px;
+    border: 0;
+    background: var(--muted);
+  }
+
+  .contenu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .titre {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .detail {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  .entree--compacte .periode {
+    padding: 14px 0;
+  }
+
+  .contenu--compact {
+    display: block;
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .titre-compact {
+    font-weight: 500;
+  }
+
+  .type {
+    padding: 22px 0 0 16px;
+    border-bottom: 1px solid var(--line);
+    align-self: stretch;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .entree--compacte .type {
+    padding-top: 14px;
+  }
+
+  .entree--distinction .type {
+    color: var(--statut);
+  }
+
+  .cote {
+    flex: 1 1 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .encadre {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+  }
+
+  .encadre--accent {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+
+  .encadre--accent .encadre-etiquette {
+    color: var(--accent);
+  }
+
+  .encadre--statut {
+    border-color: var(--statut);
+  }
+
+  .encadre--statut .encadre-etiquette {
+    color: var(--statut);
+  }
+
+  .encours {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .statut-detail {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .encadre-lien {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--target);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .pdf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+    padding: 0 24px;
+    background: var(--text);
+    border-radius: var(--radius);
+    color: var(--bg);
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .pdf:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* Téléphone : la période passe au-dessus de l'intitulé, la ligne longe le bord gauche */
+  @media (max-width: 760px) {
+    .entree {
+      grid-template-columns: 28px minmax(0, 1fr);
+      grid-template-areas:
+        'noeud periode'
+        'noeud contenu';
+      background-position: 9px 0;
+    }
+
+    .noeud {
+      grid-area: noeud;
+      justify-self: start;
+      margin-left: 5px;
+      margin-top: 20px;
+    }
+
+    .entree--en-cours .noeud,
+    .entree--distinction .noeud {
+      margin-left: 4px;
+      margin-top: 19px;
+    }
+
+    .entree--compacte .noeud {
+      margin-left: 7px;
+      margin-top: 18px;
+    }
+
+    .periode,
+    .entree--compacte .periode {
+      grid-area: periode;
+      padding: 14px 0 0;
+      font-size: 11px;
+    }
+
+    .contenu,
+    .contenu--compact {
+      grid-area: contenu;
+      padding-top: 4px;
+    }
+
+    .titre {
+      font-size: 18px;
+    }
+
+    .type {
+      display: none;
+    }
+  }
+</style>

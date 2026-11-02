@@ -1,6 +1,6 @@
 ---
-// Contenu du CV (spec §6.3), partagé par /cv/ et /en/cv/. À l'écran, la page garde le thème sombre
-// du site ; seule la feuille print.css la passe en document A4 clair.
+// Contenu du CV (spec §6.3), partagé par /cv/ et /en/cv/. À l'écran, c'est une feuille claire posée sur
+// le thème sombre du site (l'aperçu de la page CV) ; la feuille print.css en fait le document A4 imprimé.
 import '../styles/print.css';
 import { competences } from '../data/competences';
 import { parcours } from '../data/parcours';
@@ -110,119 +110,124 @@ const entrees = trierParcours(parcours).map((entree) => ({
 </article>
 
 <style>
-  /* Styles d'écran uniquement : l'impression est entièrement réglée par styles/print.css */
+  /* À l'écran : une feuille claire posée sur la page sombre, telle qu'elle s'imprime.
+     L'impression est entièrement réglée par styles/print.css. */
   @media screen {
     .cv {
       display: flex;
       flex-direction: column;
-      gap: 40px;
+      gap: 28px;
       width: 100%;
-      max-width: 880px;
+      max-width: 860px;
       margin-inline: auto;
-      padding: 48px var(--gutter) 72px;
+      padding: clamp(24px, 5vw, 56px);
+      background: #ffffff;
+      color: #15181c;
+      border-radius: 3px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+      font-family: var(--font-texte);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .cv-entete {
+      padding-bottom: 16px;
+      border-bottom: 2px solid #15181c;
     }
 
     .cv-nom {
       margin: 0;
-      font-family: var(--font-mono);
-      font-size: clamp(36px, 6vw, 56px);
-      font-weight: 700;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      font-family: var(--font-display);
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
     }
 
     .cv-intitule {
-      margin: 12px 0 0;
-      font-family: var(--font-mono);
-      font-size: 18px;
-      color: var(--text-2);
+      margin: 8px 0 0;
+      font-size: 15px;
+      font-weight: 500;
     }
 
     .cv-contact {
       display: flex;
       flex-wrap: wrap;
       gap: 0 24px;
-      margin: 12px 0 0;
+      margin: 8px 0 0;
       padding: 0;
       list-style: none;
-      font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 13px;
     }
 
-    .cv-contact a {
+    .cv-contact a,
+    .cv-contact :global(a[data-email]) {
       display: inline-flex;
       align-items: center;
       min-height: var(--target);
-      color: var(--accent);
-      text-decoration: none;
+      color: #0a5a63;
+      text-decoration: underline;
+      text-underline-offset: 3px;
       overflow-wrap: anywhere;
     }
 
-    .cv-contact a:hover {
-      color: var(--accent-hover);
+    .cv-contact a:hover,
+    .cv-contact :global(a[data-email]:hover) {
+      color: #15181c;
     }
 
     .cv-titre {
-      margin: 0 0 16px;
+      margin: 0 0 10px;
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.04em;
-      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #0a5a63;
     }
 
     .cv-profil,
     .cv-texte {
       margin: 0;
-      color: var(--text-2);
-    }
-
-    .cv-profil {
-      font-size: 18px;
-      line-height: 1.55;
+      color: #2a2f35;
     }
 
     .cv-competences {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 6px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
     .cv-competence {
-      padding: 8px 14px;
-      background: var(--surface-2);
-      border: 1px solid var(--line-strong);
-      border-radius: var(--radius-sm);
-      font-family: var(--font-mono);
-      font-size: 14px;
+      padding: 3px 10px;
+      border: 1px solid #b6bec7;
+      border-radius: 999px;
+      font-size: 12.5px;
     }
 
     .cv-parcours {
       margin: 0;
       padding: 0;
       list-style: none;
-      border-top: 1px solid var(--line);
     }
 
     .cv-entree {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 32px;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--line);
+      gap: 2px 20px;
+      padding: 7px 0;
     }
 
     .cv-periode {
-      font-family: var(--font-mono);
-      font-size: 14px;
-      color: var(--muted);
+      font-size: 12.5px;
+      color: #4d545c;
     }
 
     .cv-entree:not(.cv-entree--compacte) .cv-periode {
-      flex: 0 0 160px;
+      flex: 0 0 120px;
     }
 
     .cv-contenu {
@@ -235,44 +240,42 @@ const entrees = trierParcours(parcours).map((entree) => ({
     }
 
     .cv-detail {
-      color: var(--text-2);
+      color: #4d545c;
     }
 
     /* Les stages tiennent sur une ligne : période · intitulé — détail */
     .cv-entree--compacte {
       display: block;
-      padding: 12px 0;
-      color: var(--text-2);
+      color: #4d545c;
     }
 
     .cv-entree--compacte .cv-poste {
-      font-weight: 500;
-      color: var(--text);
+      color: #15181c;
     }
 
     .cv-projets {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
       margin: 0;
       padding: 0;
       list-style: none;
-      color: var(--text-2);
+      color: #2a2f35;
     }
 
     .cv-projet-titre {
-      color: var(--text);
+      color: #15181c;
     }
 
     .cv-pile {
-      font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 12.5px;
+      color: #4d545c;
     }
 
     .cv-duo {
       display: flex;
       flex-wrap: wrap;
-      gap: 40px 64px;
+      gap: 28px 64px;
     }
   }
 </style>

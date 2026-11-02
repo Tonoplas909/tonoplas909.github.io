@@ -1,0 +1,211 @@
+---
+// Gabarit commun des pages de section (spec 2026-11-02 §4) : retour au noyau, repère numéroté, grand
+// titre et introduction, le contenu de la page, puis le lien vers la section suivante.
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import { homePath, numeroSection, sectionPath, sectionSuivante, type SectionId } from '../lib/routes';
+
+interface Props {
+  lang: Lang;
+  section: SectionId;
+  titre: string;
+  lead?: string;
+  /** La page CV garde le nom de Matis comme seul h1 : son grand titre est alors un simple paragraphe. */
+  balise?: 'h1' | 'p';
+}
+
+const { lang, section, titre, lead, balise = 'h1' } = Astro.props;
+const Titre = balise;
+const suivante = sectionSuivante(section);
+---
+
+<div class="container page-section apparition">
+  <a class="retour no-print" href={homePath(lang)} data-retour-noyau>
+    <span aria-hidden="true">←</span>
+    {t(lang, 'section.retour')}
+  </a>
+
+  <div class="entete no-print">
+    <div class="titres">
+      <p class="repere">
+        <span class="repere-point" aria-hidden="true"></span><span class="repere-trait" aria-hidden="true"></span>
+        {numeroSection(section)} · {t(lang, `nav.${section}`)}
+      </p>
+      <Titre class="titre-page">{titre}</Titre>
+    </div>
+    {lead && <p class="lead">{lead}</p>}
+  </div>
+
+  <slot />
+
+  {
+    suivante ? (
+      <a class="suivant no-print" href={sectionPath(lang, suivante)} data-section-suivante>
+        <span class="suivant-textes">
+          <span class="etiquette">
+            {t(lang, 'section.suivant')} · {numeroSection(suivante)}
+          </span>
+          <span class="suivant-titre">{t(lang, `nav.${suivante}`)}</span>
+        </span>
+        <span class="suivant-fleche" aria-hidden="true">
+          →
+        </span>
+      </a>
+    ) : (
+      <a class="suivant no-print" href={homePath(lang)} data-section-suivante>
+        <span class="suivant-textes">
+          <span class="etiquette">{t(lang, 'section.fin')}</span>
+          <span class="suivant-titre">{t(lang, 'section.retour')}</span>
+        </span>
+        <span class="suivant-fleche" aria-hidden="true">
+          ↺
+        </span>
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .page-section {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-top: 40px;
+    padding-bottom: 64px;
+  }
+
+  .retour {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--target);
+    padding: 0 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .retour:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px 48px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .titres {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .repere {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .repere-point {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 5px var(--accent-halo);
+  }
+
+  .repere-trait {
+    width: 64px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .titre-page {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(48px, 8vw, 112px);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+
+  .lead {
+    flex: 0 1 460px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-3);
+  }
+
+  .suivant {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 72px;
+    margin-top: 16px;
+    padding: 12px 24px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .suivant:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .suivant-textes {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .suivant-titre {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .suivant-fleche {
+    font-size: 20px;
+    color: var(--accent);
+  }
+
+  @media (min-width: 761px) {
+    .lead {
+      margin-left: auto;
+      text-align: right;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .page-section {
+      gap: 24px;
+      padding-top: 24px;
+    }
+
+    .repere-trait {
+      width: 40px;
+    }
+  }
+</style>

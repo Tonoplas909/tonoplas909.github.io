@@ -1,7 +1,8 @@
 ---
 import type { Lang } from '../data/types';
 import { t } from '../i18n/ui';
-import { equivalentPath, homePath } from '../lib/routes';
+import { SECTIONS, equivalentPath, homePath, numeroSection, sectionFromPath, sectionPath } from '../lib/routes';
+import IconeNoyau from './IconeNoyau.astro';
 
 interface Props {
   lang: Lang;
@@ -9,16 +10,13 @@ interface Props {
 
 const { lang } = Astro.props;
 const pathname = Astro.url.pathname;
-const home = homePath(lang);
+const courante = sectionFromPath(pathname);
 
-// Sur l'accueil, les ancres restent locales ; ailleurs, elles pointent vers l'accueil de la langue.
-const prefixe = pathname === home ? '' : home;
-const liens = [
-  { cle: 'nav.projets', href: `${prefixe}#projets` },
-  { cle: 'nav.parcours', href: `${prefixe}#parcours` },
-  { cle: 'nav.cv', href: `${prefixe}#cv` },
-  { cle: 'nav.contact', href: `${prefixe}#contact` },
-];
+const liens = SECTIONS.map((section) => ({
+  href: sectionPath(lang, section),
+  libelle: t(lang, `nav.${section}`),
+  courant: section === courante,
+}));
 
 // Le nom accessible du lien vers l'autre langue commence par le texte visible (« EN », « FR ») :
 // sans cela, un utilisateur de commande vocale qui dit « cliquer EN » ne l'atteint pas (WCAG 2.5.3).
@@ -28,11 +26,32 @@ const langues: { code: Lang; libelle: string }[] = [
 ];
 ---
 
-<header class="container site-header">
-  <a class="logo" href={home}>~/matis-demore<span class="logo-curseur" aria-hidden="true">_</span></a>
-  <nav class="nav">
-    {liens.map((lien) => <a class="nav-lien" href={lien.href}>{t(lang, lien.cle)}</a>)}
-    <div class="langues">
+<header class="site-header">
+  <div class="marque">
+    <a class="logo" href={homePath(lang)}>
+      <IconeNoyau />
+      <span class="logo-texte">MD</span><span class="sr-only"> — {t(lang, 'logo.nom')}</span>
+    </a>
+    {
+      courante && (
+        <span class="fil" aria-hidden="true">
+          / <span class="fil-section">{numeroSection(courante)} · {t(lang, `nav.${courante}`)}</span>
+        </span>
+      )
+    }
+  </div>
+  <nav class="nav" aria-label={t(lang, 'nav.label')}>
+    <div class="nav-liens">
+      {
+        liens.map((lien) => (
+          <a class="nav-lien" href={lien.href} aria-current={lien.courant ? 'page' : undefined}>
+            {lien.libelle}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+  <div class="langues">
       {
         langues.map(({ code, libelle }) =>
           code === lang ? (
@@ -51,36 +70,54 @@ const langues: { code: Lang; libelle: string }[] = [
           )
         )
       }
-    </div>
-  </nav>
+  </div>
 </header>
 
 <style>
   .site-header {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px 24px;
-    padding-block: 20px;
+    gap: 4px 24px;
+    padding: 14px var(--gutter);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .marque {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
 
   .logo {
     display: inline-flex;
     align-items: center;
+    gap: 12px;
     min-height: var(--target);
-    font-family: var(--font-mono);
-    font-size: 15px;
-    font-weight: 500;
     color: var(--text);
     text-decoration: none;
   }
 
   .logo:hover {
-    color: var(--text);
+    color: var(--accent-hover);
   }
 
-  .logo-curseur {
+  .logo-texte {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .fil-section {
     color: var(--accent);
   }
 
@@ -88,9 +125,13 @@ const langues: { code: Lang; libelle: string }[] = [
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0 20px;
-    font-family: var(--font-mono);
-    font-size: 14px;
+    gap: 4px 16px;
+    font-size: 13px;
+  }
+
+  .nav-liens {
+    display: flex;
+    flex-wrap: wrap;
   }
 
   .nav-lien {
@@ -99,21 +140,24 @@ const langues: { code: Lang; libelle: string }[] = [
     justify-content: center;
     min-width: var(--target);
     min-height: var(--target);
-    padding-inline: 4px;
-    color: var(--text-2);
+    padding-inline: 12px;
+    color: var(--text);
     text-decoration: none;
-    text-transform: lowercase;
   }
 
   .nav-lien:hover {
     color: var(--accent-hover);
   }
 
+  .nav-lien[aria-current='page'] {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
   .langues {
     display: flex;
-    margin-left: 8px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
+    border-radius: 999px;
   }
 
   .langue {
@@ -122,8 +166,8 @@ const langues: { code: Lang; libelle: string }[] = [
     justify-content: center;
     min-width: 48px;
     min-height: var(--target);
-    border-radius: 5px;
-    color: var(--text-2);
+    border-radius: 999px;
+    color: var(--text);
     text-decoration: none;
   }
 
@@ -132,9 +176,9 @@ const langues: { code: Lang; libelle: string }[] = [
   }
 
   .langue[aria-current='true'] {
-    background: var(--accent);
+    background: var(--text);
     color: var(--bg);
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .langue[aria-current='true']:hover {
@@ -144,5 +188,39 @@ const langues: { code: Lang; libelle: string }[] = [
   /* L'anneau de focus ne doit pas être rogné par la bordure du groupe */
   .langue:focus-visible {
     outline-offset: 2px;
+  }
+
+  /* Ordinateur : logo, navigation et langues sur une ligne */
+  @media (min-width: 761px) {
+    .nav {
+      margin-left: auto;
+    }
+  }
+
+  /* Téléphone : logo et langues sur la première ligne, les cinq sections sur la seconde */
+  @media (max-width: 760px) {
+    .site-header {
+      gap: 4px 12px;
+      padding-block: 8px 4px;
+    }
+
+    .nav {
+      order: 3;
+      width: 100%;
+    }
+
+    .nav-liens {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .nav-lien {
+      padding-inline: 4px;
+      font-size: 12px;
+    }
+
+    .fil {
+      display: none;
+    }
   }
 </style>

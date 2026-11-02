@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { projets } from '../data/projets';
 import type { Lang, Projet } from '../data/types';
 import { t } from '../i18n/ui';
 import { imagesDuProjet } from '../lib/images';
@@ -12,47 +13,58 @@ interface Props {
 
 const { projet, lang } = Astro.props;
 
-// La première image du projet sert de vignette ; sans image, la carte reste purement typographique.
+// La première image du projet sert de vignette ; sans image, la carte montre son numéro en contour.
 const [vignette] = imagesDuProjet(projet.id);
 
+const numero = String(projets.indexOf(projet) + 1).padStart(2, '0');
 const pageProjet = projectPath(lang, projet.id);
 const libelleDemo = t(lang, projet.categorie === 'jeu' ? 'projets.jouer' : 'projets.voirSite');
-// L'espace insécable garde le point médian collé à la techno qui le précède
-const stack = projet.stack.join(' · ');
+const repere = [
+  numero,
+  t(lang, `categorie.${projet.categorie}`),
+  ...(projet.categorie === 'jeu' && projet.liens.demo ? [t(lang, 'projets.jouable')] : []),
+].join(' · ');
+const stack = projet.stack.join(' · ');
 ---
 
 <li
-  class:list={['carte-projet', { 'carte-projet--vedette': projet.vedette }]}
+  class:list={['carte-projet', { 'carte-projet--vedette': projet.vedette, 'carte-projet--image': vignette }]}
   data-projet-id={projet.id}
   data-categorie={projet.categorie}
 >
-  {
-    vignette && (
-      <div class="vignette">
+  <div class="vignette">
+    {
+      vignette ? (
         <Image src={vignette} alt="" width={640} height={360} format="webp" loading="lazy" />
-      </div>
-    )
-  }
+      ) : (
+        <div class="vignette-vide" aria-hidden="true">
+          <span class="vignette-numero">{numero}</span>
+          <span class="vignette-note">{t(lang, 'projets.capture')}</span>
+        </div>
+      )
+    }
+  </div>
   <div class="corps">
+    <p class="repere">{repere}</p>
     {projet.badge && <span class="badge">{projet.badge[lang]}</span>}
-    <h3 class="titre">
+    <h2 class="titre">
       <a class="carte-lien" href={pageProjet}>{projet.titre}</a>
-      <span class="fleche" aria-hidden="true">→</span>
-    </h3>
+    </h2>
     <p class="resume">{projet.resume[lang]}</p>
     <p class="stack">{stack}</p>
     <div class="actions">
       {
         projet.liens.demo && (
-          <a href={projet.liens.demo} rel="noopener noreferrer">
+          <a class="action action--demo" href={projet.liens.demo} rel="noopener noreferrer">
             {libelleDemo}
-            <span aria-hidden="true"> →</span>
+            <span aria-hidden="true"> ↗</span>
             <span class="sr-only"> ({projet.titre})</span>
           </a>
         )
       }
-      <a class="action-code" href={projet.liens.code} rel="noopener noreferrer">
+      <a class="action" href={projet.liens.code} rel="noopener noreferrer">
         {t(lang, 'projets.code')}
+        <span aria-hidden="true"> ↗</span>
         <span class="sr-only"> ({projet.titre})</span>
       </a>
     </div>
@@ -61,20 +73,20 @@ const stack = projet.stack.join(' · ');
 
 <style>
   .carte-projet {
-    /* Base de 300 px : trois par ligne sur ordinateur, une colonne sur téléphone */
-    flex: 1 1 300px;
+    /* Trois par ligne sur ordinateur, les vedettes deux par ligne, une colonne sur téléphone */
+    flex: 1 1 340px;
     min-width: 0;
     position: relative;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
   }
 
-  /* Cartes en vedette : larges, deux par ligne sur ordinateur */
   .carte-projet--vedette {
-    flex-basis: 460px;
+    flex-basis: 520px;
   }
 
   .carte-projet:hover,
@@ -89,10 +101,11 @@ const stack = projet.stack.join(' · ');
   }
 
   .vignette {
-    overflow: hidden;
-    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-    border-bottom: 1px solid var(--line);
+    position: relative;
     aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--surface-2);
   }
 
   .vignette :global(img) {
@@ -102,38 +115,78 @@ const stack = projet.stack.join(' · ');
     object-fit: cover;
   }
 
+  .vignette-vide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image:
+      linear-gradient(#111821 1px, transparent 1px),
+      linear-gradient(90deg, #111821 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .vignette-numero {
+    font-family: var(--font-display);
+    font-size: clamp(72px, 9vw, 150px);
+    font-weight: 800;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+  }
+
+  .vignette-note {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .corps {
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 20px;
+  }
+
+  .carte-projet--vedette .corps {
     gap: 12px;
     padding: 24px;
   }
 
-  .carte-projet--vedette .corps {
-    gap: 14px;
-    padding: 28px;
+  .repere {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
   }
 
   .badge {
-    align-self: flex-start;
-    padding: 4px 10px;
-    background: var(--accent-soft);
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--accent-hover);
+    padding: 5px 10px;
+    border: 1px solid var(--statut);
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--statut);
   }
 
   .titre {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: 20px;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.05;
   }
 
   .carte-projet--vedette .titre {
-    font-size: 24px;
+    font-size: 34px;
   }
 
   /* Lien étiré : la carte entière mène à la page du projet */
@@ -157,76 +210,68 @@ const stack = projet.stack.join(' · ');
     outline: none;
   }
 
-  .fleche {
-    display: inline-block;
-    margin-left: 8px;
-    color: var(--muted);
-  }
-
-  .carte-projet:hover .fleche,
-  .carte-projet:has(:focus-visible) .fleche {
-    color: var(--accent);
-  }
-
   .resume {
     margin: 0;
-    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-3);
   }
 
   .stack {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 13px;
+    margin: auto 0 0;
+    padding-top: 4px;
+    font-size: 11.5px;
     color: var(--muted);
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0 20px;
-    margin-top: auto;
-    padding-top: 6px;
-    font-weight: 500;
+    gap: 8px;
   }
 
   /* Au-dessus du lien étiré, pour rester cliquables séparément */
-  .actions a {
+  .action {
     position: relative;
     z-index: 1;
-    display: inline-block;
-    /* 10 px + 25,6 px de ligne + 10 px : au moins 44 px de haut */
-    padding: 10px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--target);
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text);
     text-decoration: none;
   }
 
-  .actions .action-code {
-    color: var(--text-2);
+  .action:hover {
+    border-color: var(--accent);
+    color: var(--text);
   }
 
-  .actions .action-code:hover {
-    color: var(--accent-hover);
+  .action--demo {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 500;
   }
 
-  /* Zoom de la vignette et décalage de la flèche : coupés si l'utilisateur réduit les animations */
+  .action--demo:hover {
+    background: var(--accent-hover);
+    color: var(--bg);
+  }
+
+  /* Zoom de la vignette : coupé si l'utilisateur réduit les animations */
   @media (prefers-reduced-motion: no-preference) {
     .vignette :global(img) {
       transition: transform 0.3s ease;
     }
 
-    .fleche {
-      transition:
-        transform 0.2s ease,
-        color 0.2s ease;
-    }
-
     .carte-projet:hover .vignette :global(img),
     .carte-projet:has(:focus-visible) .vignette :global(img) {
       transform: scale(1.04);
-    }
-
-    .carte-projet:hover .fleche,
-    .carte-projet:has(:focus-visible) .fleche {
-      transform: translateX(4px);
     }
   }
 </style>

@@ -16,4 +16,6 @@ export const profil: Profil = {
     linkedin: 'https://www.linkedin.com/in/matis-demore-31609a267/',
   },
   email: { local: 'matis.nico123', domain: 'gmail.com' },
+  // Indisponible tant que dure l'alternance chez Eng'IT (M1 MIAGE)
+  statut: { disponible: false, finAlternance: { annee: 2028, mois: 9 } },
 };

@@ -1,0 +1,35 @@
+---
+import { projets } from '../data/projets';
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import CarteProjet from './CarteProjet.astro';
+import FiltreProjets from './FiltreProjets.astro';
+import PageSection from './PageSection.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+// Les vedettes en tête, puis le reste, chacun dans l'ordre de `projets`
+const ordre = [...projets.filter((projet) => projet.vedette), ...projets.filter((projet) => !projet.vedette)];
+---
+
+<PageSection lang={lang} section="projets" titre={t(lang, 'projets.titre')} lead={t(lang, 'projets.lead')}>
+  <FiltreProjets lang={lang} />
+  <ul class="cartes">
+    {ordre.map((projet) => <CarteProjet projet={projet} lang={lang} />)}
+  </ul>
+</PageSection>
+
+<style>
+  .cartes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

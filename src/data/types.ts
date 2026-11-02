@@ -39,4 +39,19 @@ export interface Profil {
   interets: Localise<string[]>;
   liens: { github: string; linkedin: string };
   email: { local: string; domain: string };
+  /** Disponibilité affichée sur l'accueil, le parcours et le contact. */
+  statut: { disponible: boolean; finAlternance?: { annee: number; mois: number } };
+}
+
+export type GroupeCompetencesId = 'back' | 'front' | 'donnees' | 'temps-reel';
+
+export interface ItemCompetence {
+  nom: string;
+  /** Où la techno a servi hors des projets du site : noms d'entreprises du parcours. */
+  contextes?: string[];
+}
+
+export interface GroupeCompetences {
+  id: GroupeCompetencesId;
+  items: ItemCompetence[];
 }

@@ -1,0 +1,104 @@
+---
+// Page CV (spec 2026-11-02 §4) : les deux PDF, puis le CV lui-même en aperçu. Le nom reste le seul h1
+// de la page (c'est aussi le titre du PDF), le grand titre de la section est donc un paragraphe.
+import type { Lang } from '../data/types';
+import { t } from '../i18n/ui';
+import CvPage from './CvPage.astro';
+import PageSection from './PageSection.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+// Le PDF de la langue courante passe en premier, en bouton principal
+const pdf = {
+  fr: { href: '/Matis-Demore-CV.pdf', cle: 'cv.fr', langue: 'FR' },
+  en: { href: '/Matis-Demore-CV-EN.pdf', cle: 'cv.en', langue: 'EN' },
+};
+const fichiers = lang === 'fr' ? [pdf.fr, pdf.en] : [pdf.en, pdf.fr];
+---
+
+<PageSection lang={lang} section="cv" titre={t(lang, 'cv.titre')} lead={t(lang, 'cv.texte')} balise="p">
+  <div class="telechargements no-print">
+    {
+      fichiers.map((fichier, i) => (
+        <a class:list={['telechargement', { 'telechargement--principal': i === 0 }]} href={fichier.href}>
+          <span class="telechargement-format">PDF · {fichier.langue}</span>
+          <span class="telechargement-titre">
+            {t(lang, fichier.cle)} <span aria-hidden="true">↓</span>
+          </span>
+          <span class="telechargement-fichier">{fichier.href.slice(1)}</span>
+        </a>
+      ))
+    }
+  </div>
+
+  <figure class="apercu">
+    <figcaption class="etiquette no-print">{t(lang, 'cv.apercu')}</figcaption>
+    <CvPage lang={lang} />
+  </figure>
+</PageSection>
+
+<style>
+  .telechargements {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+  }
+
+  .telechargement {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 26px 28px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .telechargement:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .telechargement--principal {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  .telechargement--principal:hover {
+    background: var(--accent-hover);
+    color: var(--bg);
+  }
+
+  .telechargement-format {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .telechargement-titre {
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 800;
+    line-height: 1.05;
+  }
+
+  .telechargement-fichier {
+    font-size: 12px;
+    opacity: 0.85;
+  }
+
+  .apercu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0 0;
+  }
+</style>

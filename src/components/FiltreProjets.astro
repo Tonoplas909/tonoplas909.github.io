@@ -10,7 +10,7 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
-{/* Masqué dans le HTML : sans JavaScript, les 8 cartes restent affichées et il n'y a pas de bouton inutile. Le script retire `hidden`. */}
+{/* Masqué dans le HTML : sans JavaScript, toutes les cartes restent affichées et il n'y a pas de bouton inutile. Le script retire `hidden`. */}
 <div class="filtre" role="group" aria-label={t(lang, 'projets.filtre.label')} data-filtre-projets hidden>
   {
     FILTRES.map((filtre) => (
@@ -34,32 +34,32 @@ const { lang } = Astro.props;
   .filtre {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: 14px;
+    gap: 8px;
   }
 
   .bouton-filtre {
     min-height: var(--target);
-    padding: 0 14px;
+    padding: 0 18px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
+    border-radius: 999px;
     background: transparent;
-    color: var(--text-2);
-    font-family: inherit;
-    font-size: inherit;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     cursor: pointer;
   }
 
   .bouton-filtre:hover {
     border-color: var(--accent);
-    color: var(--text);
   }
 
   .bouton-filtre[aria-pressed='true'] {
     border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent-hover);
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 500;
   }
 </style>
 
