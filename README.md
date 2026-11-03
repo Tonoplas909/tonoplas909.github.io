@@ -4,9 +4,18 @@ Portfolio et CV bilingues (français et anglais) de Matis Demore, développeur f
 <https://tonoplas909.github.io/>. Site statique construit avec [Astro](https://astro.build),
 sans cookie, sans statistiques et sans requête vers un tiers (polices hébergées).
 
-- `/` et `/en/` : accueil (présentation, compétences, projets avec filtre, parcours, contact)
+- `/` et `/en/` : accueil, un noyau 3D animé relié à six nœuds (les cinq sections et le statut)
+- `/projets/` et `/en/projects/` : les projets, avec filtre
 - `/projets/<id>/` et `/en/projects/<id>/` : une page par projet, avec galerie de captures
+- `/parcours/` et `/en/background/` : le parcours
+- `/competences/` et `/en/skills/` : les compétences, reliées aux projets et aux alternances
 - `/cv/` et `/en/cv/` : le CV, imprimable ; ses PDF sont générés au déploiement
+- `/contact/` et `/en/contact/` : e-mail, GitHub, LinkedIn et statut
+
+Direction visuelle « Noyau » : voir `docs/superpowers/specs/2026-11-02-refonte-noyau-design.md`.
+La scène de l'accueil (icosaèdre, anneaux, nœuds, projection en perspective) est calculée dans
+`src/lib/noyau.ts`, utilisé à la fois pour le rendu côté serveur, l'animation et les tests. Sans
+JavaScript ou avec les animations réduites, elle reste fixe et chaque nœud est un lien.
 
 ## Installer et lancer
 
@@ -38,7 +47,7 @@ nom du dossier de ses captures), son `titre`, sa `categorie` (`jeu` ou `asso`), 
 ses textes `resume`, `description` et `points` **en français et en anglais**, sa `stack` et ses
 `liens` (`code` obligatoire, `demo` facultatif). L'ordre du tableau est l'ordre d'affichage (les
 projets en `vedette` passent en tête sur l'accueil). Les cartes, les pages FR et EN, le sitemap, le
-compteur du héros, la visionneuse et les tests suivent automatiquement. Les tests vérifient que les
+nœud « Projets » de l'accueil, la visionneuse et les tests suivent automatiquement. Les tests vérifient que les
 textes FR et EN ne sont pas vides et que les ids sont uniques. Relancer ensuite `npm run build:og` et
 commiter `public/og-default.png` : l'image de partage par défaut dessine le nombre de projets.
 
@@ -98,10 +107,10 @@ Tout le contenu vient de `src/data/` :
 
 | Fichier | Contenu |
 | --- | --- |
-| `profil.ts` | nom, intitulé, formation, langues, centres d'intérêt, liens, e-mail |
+| `profil.ts` | nom, intitulé, formation, langues, centres d'intérêt, liens, e-mail, statut (disponible ou en alternance jusqu'à une date) |
 | `projets.ts` | les projets, avec leurs textes FR et EN |
 | `parcours.ts` | formation, expériences et distinctions |
-| `competences.ts` | la liste des compétences |
+| `competences.ts` | la liste des compétences (CV) et leurs groupes sur la page Compétences ; les projets qui utilisent une techno sont retrouvés dans leur `stack`, les alternances s'indiquent dans `contextes` |
 
 Les textes de l'interface (navigation, libellés, pages d'erreur) sont dans `src/i18n/ui.ts`, avec
 chaque clé en français et en anglais.

@@ -84,6 +84,9 @@ const libelles: Record<NoeudId, Libelle> = {
   },
 };
 
+/** Ordre d'empilement d'un nœud : toujours positif (au-dessus du dessin), plus grand devant. */
+const ordreEmpilement = (z: number) => Math.round(30 + z * 5);
+
 const pourcent = (valeur: number, total: number) => `${((valeur / total) * 100).toFixed(2)}%`;
 
 /** Style d'un nœud : position, profondeur (taille, halo, opacité) et ordre d'empilement. */
@@ -93,7 +96,7 @@ function styleNoeud(n: PlacementNoeud, nom: NomGabarit): string {
     `left: ${pourcent(n.x, g.largeur)}`,
     `top: ${pourcent(n.y, g.hauteur)}`,
     `--p: ${n.profondeur.toFixed(3)}`,
-    `z-index: ${Math.round(10 + n.z * 10)}`,
+    `z-index: ${ordreEmpilement(n.z)}`,
   ].join('; ');
 }
 
@@ -312,7 +315,8 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
         lien.style.left = `${((n.x / g.largeur) * 100).toFixed(2)}%`;
         lien.style.top = `${((n.y / g.hauteur) * 100).toFixed(2)}%`;
         lien.style.setProperty('--p', n.profondeur.toFixed(3));
-        lien.style.zIndex = String(Math.round(10 + n.z * 10));
+        // Toujours positif : un nœud du fond doit rester au-dessus du dessin SVG, donc cliquable
+        lien.style.zIndex = String(Math.round(30 + n.z * 5));
         lien.classList.toggle('noeud--gauche', n.x < g.cx);
       }
     }
@@ -577,9 +581,11 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     --taille: calc(7px + 9px * var(--p));
     --couleur: var(--accent);
     --halo: var(--accent-halo);
+    /* Le lien a la taille du point, centré sur la position du nœud ; la carte est posée à côté */
     position: absolute;
-    width: 0;
-    height: 0;
+    width: var(--taille);
+    height: var(--taille);
+    margin: calc(var(--taille) / -2) 0 0 calc(var(--taille) / -2);
     color: var(--text);
     text-decoration: none;
   }
@@ -595,10 +601,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
   .noeud-point {
     position: absolute;
-    left: calc(var(--taille) / -2);
-    top: calc(var(--taille) / -2);
-    width: var(--taille);
-    height: var(--taille);
+    inset: 0;
     border-radius: 50%;
     background: var(--couleur);
     box-shadow: 0 0 0 calc(6px * var(--p)) var(--halo);
@@ -607,8 +610,8 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
   .noeud-carte {
     position: absolute;
-    top: 0;
-    left: calc(var(--taille) / 2 + 12px);
+    top: 50%;
+    left: calc(100% + 12px);
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -628,7 +631,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
   .noeud--gauche .noeud-carte {
     left: auto;
-    right: calc(var(--taille) / 2 + 12px);
+    right: calc(100% + 12px);
     align-items: flex-end;
     text-align: right;
   }
@@ -669,7 +672,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
   /* Nœud compact (téléphone) : le numéro seul, la liste détaillée suit la scène */
   .noeud--compact .noeud-carte {
-    left: calc(var(--taille) / 2 + 6px);
+    left: calc(100% + 6px);
     min-height: 0;
     padding: 2px 6px;
     font-size: 11px;
@@ -679,17 +682,18 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
   .noeud--compact.noeud--gauche .noeud-carte {
     left: auto;
-    right: calc(var(--taille) / 2 + 6px);
+    right: calc(100% + 6px);
   }
 
   /* La cible tactile fait 44 px autour du point */
   .noeud--compact::before {
     content: '';
     position: absolute;
-    left: -22px;
-    top: -22px;
+    left: 50%;
+    top: 50%;
     width: 44px;
     height: 44px;
+    transform: translate(-50%, -50%);
   }
 
   .presentation {

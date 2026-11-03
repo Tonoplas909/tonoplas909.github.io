@@ -1,16 +1,16 @@
 // Image de partage par défaut (Open Graph / Twitter card) : node scripts/build-og.mjs
-// Rend une page HTML en ligne de 1200×630 dans le style terminal du site avec Chromium (Playwright)
-// et écrit public/og-default.png. Les polices viennent des paquets @fontsource installés (intégrées
-// en base64) : ni police système ni réseau. À relancer (npm run build:og) si l'identité change,
-// puis à commiter le PNG.
+// Rend une page HTML en ligne de 1200×630 dans le style « Noyau » du site avec Chromium (Playwright)
+// et écrit public/og-default.png. Le noyau est dessiné avec les calculs de l'accueil (src/lib/noyau.ts),
+// les polices viennent des paquets @fontsource installés (intégrées en base64) : ni police système ni
+// réseau. À relancer (npm run build:og) si l'identité ou le nombre de projets change, puis à commiter le PNG.
 import { mkdir, readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
-// Modules de données sans dépendance à l'exécution : Node les charge tels quels (retrait des types).
-import { competences } from '../src/data/competences.ts';
+// Modules sans dépendance à l'exécution : Node les charge tels quels (retrait des types).
 import { profil } from '../src/data/profil.ts';
 import { projets } from '../src/data/projets.ts';
+import { NOEUDS, calculerScene, grille } from '../src/lib/noyau.ts';
 
 const LARGEUR = 1200;
 const HAUTEUR = 630;
@@ -18,23 +18,20 @@ const SORTIE = fileURLToPath(new URL('../public/og-default.png', import.meta.url
 
 // Couleurs de src/styles/tokens.css
 const C = {
-  bg: '#0a0e14',
-  surface: '#0f151d',
-  line: '#1f2b38',
-  text: '#e6edf3',
-  text2: '#b8c7d6',
-  muted: '#9fb0c0',
-  accent: '#6cb6ff',
-  ok: '#3ddc97',
-  kw: '#c792ea',
-  str: '#a5d6a7',
-  num: '#f2cc8f',
+  bg: '#06070b',
+  surface: '#0b0f15',
+  line: '#2a3540',
+  text: '#eef3f6',
+  text3: '#a9b6c2',
+  muted: '#8b98a5',
+  accent: '#7cf7ff',
+  statut: '#ff7a3d',
 };
 
 const POLICES = [
-  { famille: 'JetBrains Mono', poids: 500, paquet: 'jetbrains-mono' },
-  { famille: 'JetBrains Mono', poids: 700, paquet: 'jetbrains-mono' },
-  { famille: 'IBM Plex Sans', poids: 500, paquet: 'ibm-plex-sans' },
+  { famille: 'Syne', poids: 800, paquet: 'syne' },
+  { famille: 'Geist Mono', poids: 400, paquet: 'geist-mono' },
+  { famille: 'Geist Mono', poids: 500, paquet: 'geist-mono' },
 ];
 
 async function fontFaces() {
@@ -54,19 +51,24 @@ async function fontFaces() {
 const echapper = (texte) =>
   String(texte).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-const chaine = (valeur) => `<span class="str">"${echapper(valeur)}"</span>`;
 const [prenom, ...reste] = profil.nom.split(' ');
+const jouables = projets.filter((projet) => projet.categorie === 'jeu' && projet.liens.demo).length;
 
-// Le motif `profil.ts` du hero, alimenté par les données du site
-const lignesCode = [
-  `<span class="kw">const</span> ${echapper(prenom.toLowerCase())} = {`,
-  `  formation: ${chaine(profil.formation.fr)},`,
-  `  lieu: ${chaine(profil.lieu)},`,
-  `  stack: [${competences.slice(0, 2).map(chaine).join(', ')}, …],`,
-  `  projets: <span class="num">${projets.length}</span>,`,
-  `  cap: ${chaine(profil.objectif.fr)},`,
-  '};',
-];
+// Le noyau, vu un peu de côté, à droite de l'image
+const gabarit = { largeur: 540, hauteur: HAUTEUR, cx: 300, cy: 290, echelle: 60, echelleNoeuds: 0.9 };
+const scene = calculerScene(gabarit, { yaw: 0.3, pitch: 0.05 });
+const sol = grille(gabarit);
+const points = scene.noeuds
+  .map((noeud) => {
+    const couleur = noeud.id === 'statut' ? C.statut : C.accent;
+    const rayon = (5 + noeud.profondeur * 6).toFixed(1);
+    const numero = String(NOEUDS.indexOf(noeud.id) + 1).padStart(2, '0');
+    const gauche = noeud.x < gabarit.cx;
+    const x = noeud.x + (gauche ? -18 : 18);
+    return `<circle cx="${noeud.x.toFixed(1)}" cy="${noeud.y.toFixed(1)}" r="${rayon}" fill="${couleur}" opacity="${(0.55 + noeud.profondeur * 0.45).toFixed(2)}"/>
+<text x="${x.toFixed(1)}" y="${(noeud.y + 6).toFixed(1)}" text-anchor="${gauche ? 'end' : 'start'}" fill="${couleur}">${numero}</text>`;
+  })
+  .join('\n');
 
 async function html() {
   return `<!doctype html>
@@ -84,94 +86,76 @@ body {
   overflow: hidden;
   background: ${C.bg};
   color: ${C.text};
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: 'Geist Mono', monospace;
 }
-.barre { position: absolute; inset: 0 0 auto 0; height: 6px; background: ${C.accent}; }
-.contenu {
+.scene { position: absolute; right: 0; top: 0; width: 540px; height: ${HAUTEUR}px; }
+.scene text { font-family: 'Geist Mono', monospace; font-size: 18px; letter-spacing: 0.1em; }
+.presentation {
+  position: absolute;
+  left: 72px;
+  top: 0;
+  bottom: 0;
+  width: 600px;
   display: flex;
-  align-items: center;
-  gap: 48px;
-  height: 100%;
-  padding: 0 72px 76px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
 }
-.presentation { flex: 1 1 auto; min-width: 0; }
-.marque {
-  margin: 0 0 36px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 30px;
-  font-weight: 500;
-}
-.marque span { color: ${C.accent}; }
+.surtitre { margin: 0; font-size: 18px; white-space: nowrap; letter-spacing: 0.16em; text-transform: uppercase; color: ${C.muted}; }
 h1 {
   margin: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 124px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-family: 'Syne', sans-serif;
+  font-size: 88px;
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
 }
-.ligne {
-  margin: 36px 0 0;
-  font-size: 33px;
-  font-weight: 500;
-  color: ${C.text2};
-  white-space: nowrap;
-}
+.ligne { margin: 0; font-size: 26px; color: ${C.text3}; }
 .ligne b { font-weight: 500; color: ${C.accent}; }
-.fiche {
-  flex: 0 0 456px;
-  overflow: hidden;
-  background: ${C.surface};
-  border: 1px solid ${C.line};
-  border-radius: 12px;
-}
-.fiche-nom {
-  padding: 14px 24px;
-  border-bottom: 1px solid ${C.line};
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 18px;
-  color: ${C.muted};
-}
-.code {
-  margin: 0;
-  padding: 20px 24px 24px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: 36px;
-  color: ${C.text2};
-  white-space: pre;
-}
-.kw { color: ${C.kw}; }
-.str { color: ${C.str}; }
-.num { color: ${C.num}; }
 .url {
   position: absolute;
   left: 72px;
   bottom: 44px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  gap: 14px;
   font-size: 22px;
   font-weight: 500;
   color: ${C.muted};
 }
-.point { width: 12px; height: 12px; border-radius: 50%; background: ${C.ok}; }
+.point { width: 12px; height: 12px; border-radius: 50%; background: ${C.accent}; box-shadow: 0 0 0 6px rgba(124, 247, 255, 0.18); }
 </style>
 </head>
 <body>
-<div class="barre"></div>
-<div class="contenu">
-  <div class="presentation">
-    <p class="marque">~/matis-demore<span>_</span></p>
-    <h1>${echapper(prenom)}<br>${echapper(reste.join(' '))}</h1>
-    <p class="ligne">${echapper(profil.intitule.fr)} <b>·</b> M1 MIAGE</p>
-  </div>
-  <div class="fiche">
-    <div class="fiche-nom">profil.ts</div>
-    <pre class="code">${lignesCode.join('\n')}</pre>
-  </div>
+<svg class="scene" viewBox="0 0 540 ${HAUTEUR}" aria-hidden="true">
+  <defs>
+    <linearGradient id="fondu" gradientUnits="userSpaceOnUse" x1="0" y1="400" x2="0" y2="${HAUTEUR}">
+      <stop offset="0" stop-color="${C.accent}" stop-opacity="0"/>
+      <stop offset="1" stop-color="${C.accent}" stop-opacity="0.3"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="${gabarit.cx}" cy="${gabarit.cy}" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="${C.accent}" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="${C.accent}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="${sol}" fill="none" stroke="url(#fondu)" stroke-width="1"/>
+  <circle cx="${gabarit.cx}" cy="${gabarit.cy}" r="220" fill="url(#halo)"/>
+  <path d="${scene.anneaux.arriere}" fill="none" stroke="${C.accent}" stroke-opacity="0.18" stroke-dasharray="2 6"/>
+  <path d="${scene.liens.arriere}" fill="none" stroke="${C.accent}" stroke-opacity="0.3"/>
+  <path d="${scene.noyau.arriere}" fill="none" stroke="${C.accent}" stroke-opacity="0.22" stroke-dasharray="3 4"/>
+  <path d="${scene.interieur.avant}" fill="none" stroke="${C.text}" stroke-opacity="0.32"/>
+  <path d="${scene.noyau.avant}" fill="none" stroke="${C.accent}" stroke-width="2" stroke-linejoin="round"/>
+  <path d="${scene.noyau.sommets}" fill="${C.accent}"/>
+  <path d="${scene.anneaux.avant}" fill="none" stroke="${C.accent}" stroke-opacity="0.55" stroke-width="1.4"/>
+  <path d="${scene.liens.avant}" fill="none" stroke="${C.accent}" stroke-opacity="0.75" stroke-width="1.4"/>
+  <path d="${scene.liens.statut}" fill="none" stroke="${C.statut}" stroke-opacity="0.85" stroke-width="1.6"/>
+  <path d="${scene.ancres}" fill="${C.bg}" stroke="${C.accent}" stroke-width="1.4"/>
+  ${points}
+</svg>
+<div class="presentation">
+  <p class="surtitre">${echapper(profil.intitule.fr)} · ${echapper(profil.lieu)}</p>
+  <h1>${echapper(prenom)}<br>${echapper(reste.join(' '))}</h1>
+  <p class="ligne">${projets.length} projets <b>·</b> ${jouables} jouables <b>·</b> M1 MIAGE</p>
 </div>
 <div class="url"><span class="point"></span>tonoplas909.github.io</div>
 </body>
@@ -185,11 +169,9 @@ try {
   await page.setContent(await html(), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
 
-  // Une police absente se verrait à peine (repli sur une autre à chasse fixe) : on vérifie.
+  // Une police absente se verrait à peine (repli sur une autre police) : on vérifie.
   const chargees = await page.evaluate(() =>
-    ['700 124px "JetBrains Mono"', '500 20px "JetBrains Mono"', '500 33px "IBM Plex Sans"'].map((police) =>
-      document.fonts.check(police),
-    ),
+    ['800 88px "Syne"', '400 26px "Geist Mono"', '500 22px "Geist Mono"'].map((police) => document.fonts.check(police)),
   );
   if (chargees.includes(false)) {
     throw new Error('une police du site n’a pas pu être chargée depuis node_modules/@fontsource');

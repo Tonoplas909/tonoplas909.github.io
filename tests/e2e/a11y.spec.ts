@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { projets } from '../../src/data/projets';
-import { projectPath } from '../../src/lib/routes';
+import { projectPath, sectionPath } from '../../src/lib/routes';
 import { avecCaptures, sansCaptures } from './support/captures';
 
 // Un projet sans galerie (en français) et un projet avec galerie (en anglais), si le dépôt en contient ;
@@ -14,14 +14,23 @@ const PAGES = [
   '/en/',
   projectPath('fr', projetSimple.id),
   projectPath('en', projetGalerie.id),
+  sectionPath('fr', 'projets'),
+  sectionPath('en', 'projets'),
+  sectionPath('fr', 'parcours'),
+  sectionPath('en', 'competences'),
+  sectionPath('fr', 'competences'),
   '/cv/',
   '/en/cv/',
+  sectionPath('fr', 'contact'),
+  '/nimportequoi/',
 ];
 
 test.describe('accessibilité (axe, WCAG 2.0/2.1 A et AA)', () => {
   for (const chemin of PAGES) {
     test(`${chemin} : aucune violation grave ou critique`, async ({ page }, testInfo) => {
       await page.goto(chemin);
+      // Les pages de section apparaissent en fondu : on mesure les contrastes une fois l'animation finie
+      await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
 
       const resultat = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])

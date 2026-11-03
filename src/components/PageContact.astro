@@ -117,7 +117,8 @@ function adresseCourte(url: string): string {
 
   .canal-titre {
     font-family: var(--font-display);
-    font-size: clamp(32px, 4vw, 44px);
+    font-size: clamp(24px, 4vw, 44px);
+    overflow-wrap: anywhere;
     font-weight: 800;
     line-height: 1;
   }
@@ -134,7 +135,9 @@ function adresseCourte(url: string): string {
   }
 
   .canal--principal .canal-adresse :global(a) {
+    max-width: 100%;
     font-size: 14px;
+    overflow-wrap: anywhere;
   }
 
   .statut {
@@ -166,6 +169,7 @@ function adresseCourte(url: string): string {
   }
 
   .statut-colonne {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -173,6 +177,7 @@ function adresseCourte(url: string): string {
 
   .statut-titre {
     margin: 0;
+    overflow-wrap: anywhere;
     font-family: var(--font-display);
     font-size: 34px;
     font-weight: 800;

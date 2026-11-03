@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { t } from '../../src/i18n/ui';
+import { SECTIONS, numeroSection, sectionPath } from '../../src/lib/routes';
 
 const ORIGINE = 'http://localhost:4321';
 const SITE = 'https://tonoplas909.github.io';
@@ -53,17 +55,19 @@ test.describe('accueil français (/)', () => {
     expect(json).not.toMatch(/@gmail/);
   });
 
-  test('affiche le logo, la navigation et le sélecteur de langue', async ({ page }) => {
+  test('affiche le logo, la navigation vers les sections et le sélecteur de langue', async ({ page }) => {
     await page.goto('/');
     const entete = page.locator('header');
 
     await expect(entete.locator('a.logo')).toHaveAttribute('href', '/');
-    await expect(entete.locator('a.logo')).toContainText('~/matis-demore');
+    await expect(entete.locator('a.logo')).toContainText('MD');
 
-    const ancres = await entete.locator('nav a.nav-lien').evaluateAll((liens) =>
-      liens.map((lien) => lien.getAttribute('href')),
+    const liens = await entete.locator('nav a.nav-lien').evaluateAll((elements) =>
+      elements.map((lien) => lien.getAttribute('href')),
     );
-    expect(ancres).toEqual(['#projets', '#parcours', '#cv', '#contact']);
+    expect(liens).toEqual(SECTIONS.map((section) => sectionPath('fr', section)));
+    // Sur l'accueil, aucune section n'est la page courante
+    await expect(entete.locator('nav [aria-current="page"]')).toHaveCount(0);
 
     // Langue active : FR. Lien vers l'autre langue : EN, avec un nom accessible explicite.
     await expect(entete.locator('[aria-current="true"]')).toHaveText('FR');
@@ -72,9 +76,9 @@ test.describe('accueil français (/)', () => {
     await expect(versEn).toHaveAttribute('href', '/en/');
   });
 
-  test('affiche le pied de page avec GitHub, LinkedIn et l’ancre #contact', async ({ page }) => {
+  test('affiche le pied de page avec GitHub et LinkedIn', async ({ page }) => {
     await page.goto('/');
-    const pied = page.locator('footer#contact');
+    const pied = page.locator('body > footer');
 
     const github = pied.getByRole('link', { name: 'GitHub' });
     await expect(github).toHaveAttribute('href', 'https://github.com/Tonoplas909');
@@ -120,7 +124,7 @@ test.describe('accueil français (/)', () => {
     });
     expect(anneau.style).toBe('solid');
     expect(anneau.largeur).toBe('2px');
-    expect(anneau.couleur).toBe('rgb(108, 182, 255)');
+    expect(anneau.couleur).toBe('rgb(124, 247, 255)');
   });
 
   test('ne contient aucun débordement horizontal à 320 px de large', async ({ page }) => {
@@ -160,4 +164,59 @@ test.describe('accueil anglais (/en/)', () => {
     await expect(versFr).toHaveText('FR');
     await expect(versFr).toHaveAttribute('href', '/');
   });
+});
+
+test.describe('pages de section', () => {
+  for (const lang of ['fr', 'en'] as const) {
+    for (const section of SECTIONS) {
+      const chemin = sectionPath(lang, section);
+      const autre = sectionPath(lang === 'fr' ? 'en' : 'fr', section);
+
+      test(`${chemin} : répond 200, marque la section courante et pointe vers ${autre}`, async ({ page }) => {
+        const reponse = await page.goto(chemin);
+        expect(reponse?.status()).toBe(200);
+
+        await expect(page.locator('html')).toHaveAttribute('lang', lang);
+        await expect(page.locator(`link[rel=alternate][hreflang=${lang === 'fr' ? 'en' : 'fr'}]`)).toHaveAttribute(
+          'href',
+          `${SITE}${autre}`,
+        );
+        await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `${SITE}${chemin}`);
+        await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+
+        const courant = page.locator('header nav [aria-current="page"]');
+        await expect(courant).toHaveCount(1);
+        await expect(courant).toHaveAttribute('href', chemin);
+        await expect(courant).toHaveText(t(lang, `nav.${section}`));
+
+        // Le repère de la page : « 02 · Parcours », et le retour au noyau
+        await expect(page.locator('main')).toContainText(`${numeroSection(section)} · ${t(lang, `nav.${section}`)}`);
+        await expect(page.locator('[data-retour-noyau]')).toHaveAttribute('href', lang === 'fr' ? '/' : '/en/');
+      });
+    }
+  }
+
+  test('enchaîne les sections jusqu’au contact, qui ramène au noyau', async ({ page }) => {
+    for (const [index, section] of SECTIONS.entries()) {
+      await page.goto(sectionPath('fr', section));
+      const suivante = SECTIONS[index + 1];
+      await expect(page.locator('[data-section-suivante]')).toHaveAttribute(
+        'href',
+        suivante ? sectionPath('fr', suivante) : '/',
+      );
+    }
+  });
+
+  for (const lang of ['fr', 'en'] as const) {
+    for (const section of SECTIONS) {
+      const chemin = sectionPath(lang, section);
+      test(`${chemin} : aucun débordement horizontal à 320 px`, async ({ page }) => {
+        await page.setViewportSize({ width: 320, height: 640 });
+        await page.goto(chemin);
+
+        const largeur = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(largeur).toBeLessThanOrEqual(320);
+      });
+    }
+  }
 });

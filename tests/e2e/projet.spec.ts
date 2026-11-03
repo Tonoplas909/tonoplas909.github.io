@@ -5,7 +5,7 @@ import type { Lang, Projet } from '../../src/data/types';
 import { t } from '../../src/i18n/ui';
 import { altCapture } from '../../src/lib/galerie';
 import { projetParId } from '../../src/lib/projets';
-import { homePath, projectPath } from '../../src/lib/routes';
+import { projectPath, sectionPath } from '../../src/lib/routes';
 import { avecCaptures, captures, sansCaptures } from './support/captures';
 import { libelleDemo } from './support/liens';
 
@@ -78,7 +78,7 @@ test.describe('pages projet', () => {
     await expect(page.locator('meta[name=description]')).toHaveAttribute('content', projet.resume.fr);
     const retour = article.locator('[data-projet-retour]');
     await expect(retour).toHaveText(`← ${t('fr', 'projet.retour')}`);
-    await expect(retour).toHaveAttribute('href', `${homePath('fr')}#projets`);
+    await expect(retour).toHaveAttribute('href', sectionPath('fr', 'projets'));
     expect((await retour.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await expect(article.locator('h1')).toHaveText(projet.titre);
     if (projet.badge) await expect(article.getByText(projet.badge.fr, { exact: true })).toBeVisible();
@@ -93,14 +93,14 @@ test.describe('pages projet', () => {
     expect(await article.locator('.texte p').count()).toBe(projet.description.fr.length);
   });
 
-  test('en anglais, le lien de retour va à la section projets de l’accueil anglais', async ({
+  test('en anglais, le lien de retour va à la liste anglaise des projets', async ({
     page,
   }) => {
     await page.goto(projectPath('en', projets[0].id));
 
     const retour = page.locator('[data-projet-retour]');
     await expect(retour).toHaveText(`← ${t('en', 'projet.retour')}`);
-    await expect(retour).toHaveAttribute('href', `${homePath('en')}#projets`);
+    await expect(retour).toHaveAttribute('href', sectionPath('en', 'projets'));
     await expect(
       page.getByRole('heading', { level: 2, name: t('en', 'projet.points') }),
     ).toBeVisible();

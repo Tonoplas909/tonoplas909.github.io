@@ -3,7 +3,7 @@ import { projets } from '../../src/data/projets';
 import type { Lang } from '../../src/data/types';
 import { t } from '../../src/i18n/ui';
 import { formaterCompte } from '../../src/lib/filtre';
-import { projectPath } from '../../src/lib/routes';
+import { projectPath, sectionPath } from '../../src/lib/routes';
 import { captures } from './support/captures';
 import { libelleDemo } from './support/liens';
 
@@ -14,12 +14,13 @@ const CARTES_VISIBLES = '[data-projet-id]:visible';
 const jeux = projets.filter((projet) => projet.categorie === 'jeu');
 const assos = projets.filter((projet) => projet.categorie === 'asso');
 // Les vedettes en tête, puis le reste, chacun dans l'ordre des données
-const ordreAccueil = [
+const ordreListe = [
   ...projets.filter((projet) => projet.vedette),
   ...projets.filter((projet) => !projet.vedette),
 ];
 
 const carte = (id: string) => `[data-projet-id="${id}"]`;
+const LISTE = { fr: sectionPath('fr', 'projets'), en: sectionPath('en', 'projets') };
 
 /** Message de résultat du filtre, tel que le lit un lecteur d'écran : « 3 projets », « 1 project »... */
 function compte(n: number, lang: Lang): string {
@@ -29,16 +30,16 @@ function compte(n: number, lang: Lang): string {
   });
 }
 
-test.describe('projets sur l’accueil avec JavaScript', () => {
+test.describe('page des projets avec JavaScript', () => {
   test('affiche une carte par projet', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     await expect(page.locator(CARTES)).toHaveCount(projets.length);
     await expect(page.locator(CARTES_VISIBLES)).toHaveCount(projets.length);
   });
 
   test('filtre sur « Associatif » puis revient à « Tous »', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
     const associatif = page.getByRole('button', { name: 'Associatif' });
     const tous = page.getByRole('button', { name: 'Tous' });
     const statut = page.getByRole('status');
@@ -59,7 +60,7 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
   });
 
   test('filtre sur « Jeux »', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     await page.getByRole('button', { name: 'Jeux' }).click();
 
@@ -70,7 +71,7 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
   });
 
   test('filtre aussi la page anglaise, avec le singulier et le pluriel anglais', async ({ page }) => {
-    await page.goto('/en/');
+    await page.goto(LISTE.en);
     const statut = page.getByRole('status');
 
     await page.getByRole('button', { name: 'Community' }).click();
@@ -83,7 +84,7 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
   });
 
   test('offre des boutons de filtre d’au moins 44 px de haut', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     const hauteurs = await page
       .locator('button[data-filtre]')
@@ -96,7 +97,7 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
     page,
   }) => {
     for (const lang of ['fr', 'en'] as const) {
-      await page.goto(lang === 'fr' ? '/' : '/en/');
+      await page.goto(LISTE[lang]);
 
       for (const projet of projets) {
         const cible = page.locator(carte(projet.id));
@@ -121,7 +122,7 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
 
   test('mène chaque carte à la page du projet dans la langue courante', async ({ page }) => {
     for (const lang of ['fr', 'en'] as const) {
-      await page.goto(lang === 'fr' ? '/' : '/en/');
+      await page.goto(LISTE[lang]);
 
       for (const projet of projets) {
         await expect(
@@ -133,18 +134,18 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
   });
 
   test('met les vedettes en tête, puis le reste dans l’ordre des données', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     const ids = await page.locator(CARTES).evaluateAll((cartes) =>
       cartes.map((element) => element.getAttribute('data-projet-id')),
     );
-    expect(ids).toEqual(ordreAccueil.map((projet) => projet.id));
+    expect(ids).toEqual(ordreListe.map((projet) => projet.id));
   });
 
   test('affiche une vignette sur la carte de chaque projet qui a une capture, et aucune sur les autres', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     for (const projet of projets) {
       const vignette = page.locator(`${carte(projet.id)} img`);
@@ -165,11 +166,11 @@ test.describe('projets sur l’accueil avec JavaScript', () => {
   });
 });
 
-test.describe('projets sur l’accueil sans JavaScript', () => {
+test.describe('page des projets sans JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
   test('affiche toutes les cartes et aucun bouton de filtre inutile', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(LISTE.fr);
 
     await expect(page.locator(CARTES_VISIBLES)).toHaveCount(projets.length);
     await expect(page.locator('button[data-filtre]')).toHaveCount(3);
@@ -177,8 +178,8 @@ test.describe('projets sur l’accueil sans JavaScript', () => {
   });
 });
 
-test.describe('projets sur l’accueil à 320 px de large', () => {
-  for (const chemin of ['/', '/en/']) {
+test.describe('page des projets à 320 px de large', () => {
+  for (const chemin of [LISTE.fr, LISTE.en]) {
     test(`ne déborde pas horizontalement sur ${chemin}`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.goto(chemin);

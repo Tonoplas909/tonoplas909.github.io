@@ -168,7 +168,7 @@ for (const { lang, chemin } of PAGES) {
       // À l'écran : thème sombre du site, avec son en-tête et son pied de page
       await expect(entete).toBeVisible();
       await expect(pied).toBeVisible();
-      await expect(corps).toHaveCSS('background-color', 'rgb(10, 14, 20)');
+      await expect(corps).toHaveCSS('background-color', 'rgb(6, 7, 11)');
 
       await page.emulateMedia({ media: 'print' });
 

@@ -10,12 +10,12 @@ test.describe('page 404 bilingue', () => {
 
     expect(reponse?.status()).toBe(404);
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-    await expect(page.locator('main h1:visible')).toHaveText('Page introuvable');
-    await expect(page.locator('main :text("Page not found"):visible')).toHaveCount(0);
+    await expect(page.locator('main h1:visible')).toHaveText('Nœud introuvable');
+    await expect(page.locator('main :text("Node not found"):visible')).toHaveCount(0);
 
     const accueil = page.locator('main a[href="/"]:visible');
     await expect(accueil).toHaveCount(1);
-    await expect(accueil).toHaveText(/accueil/i);
+    await expect(accueil).toHaveText(/noyau/i);
     await expect(page.locator('main a[href="/en/"]:visible')).toHaveCount(0);
   });
 
@@ -26,12 +26,12 @@ test.describe('page 404 bilingue', () => {
 
     expect(reponse?.status()).toBe(404);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page.locator('main h1:visible')).toHaveText('Page not found');
-    await expect(page.locator('main :text("Page introuvable"):visible')).toHaveCount(0);
+    await expect(page.locator('main h1:visible')).toHaveText('Node not found');
+    await expect(page.locator('main :text("Nœud introuvable"):visible')).toHaveCount(0);
 
     const accueil = page.locator('main a[href="/en/"]:visible');
     await expect(accueil).toHaveCount(1);
-    await expect(accueil).toHaveText(/home/i);
+    await expect(accueil).toHaveText(/core/i);
     await expect(page.locator('main a[href="/"]:visible')).toHaveCount(0);
   });
 
@@ -42,7 +42,7 @@ test.describe('page 404 bilingue', () => {
       const reponse = await page.goto('/en/nope/');
 
       expect(reponse?.status()).toBe(404);
-      await expect(page.locator('main h1:visible')).toHaveText('Page introuvable');
+      await expect(page.locator('main h1:visible')).toHaveText('Nœud introuvable');
       await expect(page.locator('main a[href="/"]:visible')).toHaveCount(1);
     });
   });
@@ -75,7 +75,7 @@ test.describe('robots, sitemap, favicon et image de partage', () => {
     expect(reponse.status()).toBe(200);
   });
 
-  test('le sitemap relie les pages projet FR et EN et ignore /404/', async ({ request }) => {
+  test('le sitemap relie les pages FR et EN (projets, sections) et ignore /404/', async ({ request }) => {
     const reponse = await request.get('/sitemap-0.xml');
     expect(reponse.status()).toBe(200);
     const xml = await reponse.text();
@@ -98,6 +98,10 @@ test.describe('robots, sitemap, favicon et image de partage', () => {
     expect(alternativesDe(fr)).toMatchObject({ fr, en });
     expect(alternativesDe(en)).toMatchObject({ fr, en });
     expect(alternativesDe(`${SITE}/`)).toMatchObject({ fr: `${SITE}/`, en: `${SITE}/en/` });
+    expect(alternativesDe(`${SITE}/parcours/`)).toMatchObject({
+      fr: `${SITE}/parcours/`,
+      en: `${SITE}/en/background/`,
+    });
 
     expect(xml).not.toContain('/404/');
   });
