@@ -92,6 +92,20 @@ export const projets: Projet[] = [
       demo: 'https://tonoplas909.github.io/drift-club/',
       code: 'https://github.com/Tonoplas909/drift-club',
     },
+    legendes: {
+      '01.png': {
+        fr: 'Départ d\'une course sur le Col du Loup : la voiture sur la ligne, compte à rebours à l\'écran',
+        en: 'Start of a race on Col du Loup: the car on the line, countdown on screen',
+      },
+      '02.png': {
+        fr: 'Menu principal : jouer, défi du jour, mode Zen, garage, caisses, éditeur et statistiques',
+        en: 'Main menu: play, daily challenge, Zen mode, garage, crates, editor and statistics',
+      },
+      '03.png': {
+        fr: 'Choix du niveau parmi les circuits officiels, avec leur longueur, leur décor et leur heure',
+        en: 'Level selection among the official tracks, with their length, scenery and time of day',
+      },
+    },
   },
   {
     id: 'rallye-club',
@@ -134,6 +148,20 @@ export const projets: Projet[] = [
     liens: {
       demo: 'https://tonoplas909.github.io/rallye-club/',
       code: 'https://github.com/Tonoplas909/rallye-club',
+    },
+    legendes: {
+      '01.png': {
+        fr: 'Départ de la spéciale Forêt des Vosges, avec la carte du tracé et le compteur',
+        en: 'Start of the Forêt des Vosges stage, with the stage map and the speedometer',
+      },
+      '02.png': {
+        fr: 'Menu principal : carrière, course libre, défi du jour et garage',
+        en: 'Main menu: career, free race, daily challenge and garage',
+      },
+      '03.png': {
+        fr: 'Course libre : les spéciales, avec leur surface, leur longueur, leur météo et leurs temps de référence',
+        en: 'Free race: the stages, with their surface, length, weather and target times',
+      },
     },
   },
   {
@@ -218,6 +246,16 @@ export const projets: Projet[] = [
       demo: 'https://tonoplas909.github.io/tanks/',
       code: 'https://github.com/Tonoplas909/tanks',
     },
+    legendes: {
+      '01.png': {
+        fr: 'Mission 1 de la campagne : le char bleu tire sur le char ennemi',
+        en: 'Campaign mission 1: the blue tank fires at the enemy tank',
+      },
+      '02.png': {
+        fr: 'Menu : campagne solo, partie en ligne à créer ou à rejoindre',
+        en: 'Menu: solo campaign, online game to create or join',
+      },
+    },
   },
   {
     id: 'moto-club',
@@ -260,6 +298,16 @@ export const projets: Projet[] = [
     liens: {
       demo: 'https://tonoplas909.github.io/moto-club/',
       code: 'https://github.com/Tonoplas909/moto-club',
+    },
+    legendes: {
+      '01.png': {
+        fr: 'Wheelie en cours, avec la jauge d\'angle et le score',
+        en: 'A wheelie in progress, with the angle gauge and the score',
+      },
+      '02.png': {
+        fr: 'Écran d\'accueil et commandes : gaz, frein arrière, zone Parfait et looping',
+        en: 'Start screen and controls: throttle, rear brake, Perfect zone and looping',
+      },
     },
   },
   {
@@ -304,6 +352,16 @@ export const projets: Projet[] = [
       demo: 'https://tonoplas909.github.io/racing-incremental/',
       code: 'https://github.com/Tonoplas909/racing-incremental',
     },
+    legendes: {
+      '01.png': {
+        fr: 'Départ au feu sur l’Anneau de Vallon, avec le classement et les améliorations',
+        en: 'Lights-out start on Anneau de Vallon, with the standings and the upgrades',
+      },
+      '02.png': {
+        fr: 'Course en cours : un dépassement rapporte 3 $, l’écurie est quatrième',
+        en: 'Race in progress: an overtake earns $3, the team is fourth',
+      },
+    },
   },
   {
     id: 'marque',
@@ -346,6 +404,12 @@ export const projets: Projet[] = [
     liens: {
       demo: 'https://tonoplas909.github.io/car-collection/',
       code: 'https://github.com/Tonoplas909/car-collection',
+    },
+    legendes: {
+      '01.png': {
+        fr: 'Quatre voitures, une par rareté : commune, rare, épique et légendaire',
+        en: 'Four cars, one per rarity tier: common, rare, epic and legendary',
+      },
     },
   },
 ];
