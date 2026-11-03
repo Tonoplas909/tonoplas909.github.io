@@ -1,0 +1,179 @@
+---
+// Le noyau en arrière-plan des pages de section (en haut à droite) : la page est un panneau posé dans le
+// même espace, relié au noyau par une ligne. Purement décoratif : masqué aux lecteurs d'écran, ne capte
+// aucun clic, absent à l'impression. Il tourne doucement, sauf avec prefers-reduced-motion.
+import { GABARITS, calculerScene, grille, liaisonVersPanneau, ombre, pointsNoeuds, type NoeudId } from '../lib/noyau';
+
+interface Props {
+  /** Le nœud mis en avant : celui de la section affichée. */
+  noeud: NoeudId;
+}
+
+const { noeud } = Astro.props;
+const g = GABARITS.fond;
+const scene = calculerScene(g, { yaw: 0, pitch: 0 });
+const points = pointsNoeuds(scene, noeud);
+const pied = ombre(g);
+---
+
+<div class="noyau-fond no-print" aria-hidden="true" data-noyau-fond data-noeud-courant={noeud}>
+  <svg class="scene-fond" viewBox={`0 0 ${g.largeur} ${g.hauteur}`}>
+    <defs>
+      <linearGradient id="fondu-fond" gradientUnits="userSpaceOnUse" x1="0" y1={g.cy + g.echelle * 1.6} x2="0" y2={g.hauteur}>
+        <stop offset="0" stop-color="#7cf7ff" stop-opacity="0"></stop>
+        <stop offset="1" stop-color="#7cf7ff" stop-opacity="0.28"></stop>
+      </linearGradient>
+      <radialGradient id="halo-fond" cx={g.cx} cy={g.cy} r={g.echelle * 3} gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#7cf7ff" stop-opacity="0.16"></stop>
+        <stop offset="1" stop-color="#7cf7ff" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <path d={grille(g)} fill="none" stroke="url(#fondu-fond)" stroke-width="1"></path>
+    <ellipse cx={pied.x} cy={pied.y} rx={g.echelle * 2} ry={g.echelle * 0.26} class="ombre"></ellipse>
+    <circle cx={g.cx} cy={g.cy} r={g.echelle * 3} fill="url(#halo-fond)"></circle>
+    <path d={liaisonVersPanneau(g)} class="liaison"></path>
+    <path d={scene.anneaux.arriere} class="t-anneau-arriere" data-trace="anneaux.arriere"></path>
+    <path d={scene.liens.arriere} class="t-lien" data-trace="liens.arriere"></path>
+    <path d={scene.noyau.arriere} class="t-noyau-arriere" data-trace="noyau.arriere"></path>
+    <path d={scene.interieur.avant} class="t-interieur" data-trace="interieur.avant"></path>
+    <path d={scene.noyau.avant} class="t-noyau-avant" data-trace="noyau.avant"></path>
+    <path d={scene.anneaux.avant} class="t-anneau-avant" data-trace="anneaux.avant"></path>
+    <path d={scene.liens.avant} class="t-lien" data-trace="liens.avant"></path>
+    <path d={scene.liens.statut} class="t-lien-statut" data-trace="liens.statut"></path>
+    <path d={points.autres} class="t-points" data-trace="points.autres"></path>
+    <path d={points.enAvant} class="t-point-courant" data-trace="points.enAvant"></path>
+  </svg>
+</div>
+
+<script>
+  import { GABARITS, balancement, calculerScene, pointsNoeuds, type NoeudId, type Scene } from '../lib/noyau';
+
+  const fond = document.querySelector<HTMLElement>('[data-noyau-fond]');
+  const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (fond && !mouvementReduit.matches) {
+    const g = GABARITS.fond;
+    const courant = fond.dataset.noeudCourant as NoeudId;
+    const traces = new Map(
+      Array.from(fond.querySelectorAll<SVGPathElement>('[data-trace]')).map((p) => [p.dataset.trace as string, p]),
+    );
+    const lire: Record<string, (scene: Scene, points: ReturnType<typeof pointsNoeuds>) => string> = {
+      'anneaux.arriere': (scene) => scene.anneaux.arriere,
+      'anneaux.avant': (scene) => scene.anneaux.avant,
+      'liens.arriere': (scene) => scene.liens.arriere,
+      'liens.avant': (scene) => scene.liens.avant,
+      'liens.statut': (scene) => scene.liens.statut,
+      'noyau.arriere': (scene) => scene.noyau.arriere,
+      'noyau.avant': (scene) => scene.noyau.avant,
+      'interieur.avant': (scene) => scene.interieur.avant,
+      'points.autres': (_scene, points) => points.autres,
+      'points.enAvant': (_scene, points) => points.enAvant,
+    };
+
+    let temps = 0;
+    let precedent = performance.now();
+    const image = (maintenant: number) => {
+      // Plus lent qu'à l'accueil : le fond ne doit pas distraire de la lecture
+      temps += Math.min(0.05, (maintenant - precedent) / 1000) * 0.6;
+      precedent = maintenant;
+      const scene = calculerScene(g, { yaw: balancement(temps), pitch: 0 });
+      const points = pointsNoeuds(scene, courant);
+      for (const [cle, chemin] of traces) chemin.setAttribute('d', lire[cle]?.(scene, points) ?? '');
+      if (!mouvementReduit.matches) requestAnimationFrame(image);
+    };
+    requestAnimationFrame(image);
+  }
+</script>
+
+<style>
+  .noyau-fond {
+    position: fixed;
+    top: 56px;
+    right: 0;
+    z-index: 0;
+    width: min(640px, 60vw);
+    aspect-ratio: 640 / 560;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .scene-fond {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+    /* La transition entre pages fait glisser le noyau de l'accueil jusqu'ici */
+    view-transition-name: noyau;
+  }
+
+  .ombre {
+    fill: var(--accent);
+    fill-opacity: 0.06;
+  }
+
+  .liaison {
+    stroke: var(--accent);
+    stroke-opacity: 0.55;
+    stroke-width: 1.2;
+    stroke-dasharray: 4 6;
+  }
+
+  .t-anneau-arriere {
+    stroke: var(--accent);
+    stroke-opacity: 0.16;
+    stroke-dasharray: 2 6;
+  }
+
+  .t-lien {
+    stroke: var(--accent);
+    stroke-opacity: 0.3;
+  }
+
+  .t-lien-statut {
+    stroke: var(--statut);
+    stroke-opacity: 0.5;
+  }
+
+  .t-noyau-arriere {
+    stroke: var(--accent);
+    stroke-opacity: 0.2;
+    stroke-dasharray: 3 4;
+  }
+
+  .t-interieur {
+    stroke: var(--text);
+    stroke-opacity: 0.25;
+  }
+
+  .t-noyau-avant {
+    stroke: var(--accent);
+    stroke-opacity: 0.85;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  .t-anneau-avant {
+    stroke: var(--accent);
+    stroke-opacity: 0.45;
+    stroke-width: 1.1;
+  }
+
+  .t-points {
+    fill: var(--accent);
+    fill-opacity: 0.55;
+  }
+
+  .t-point-courant {
+    fill: var(--accent);
+    stroke: rgba(124, 247, 255, 0.25);
+    stroke-width: 10;
+  }
+
+  @media (max-width: 760px) {
+    .noyau-fond {
+      top: 88px;
+      width: 80vw;
+      opacity: 0.4;
+    }
+  }
+</style>

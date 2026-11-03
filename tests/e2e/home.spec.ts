@@ -78,18 +78,51 @@ test.describe('accueil avec JavaScript', () => {
     await expect.poll(() => noeud.evaluate((lien: HTMLElement) => lien.style.left), { timeout: 5000 }).not.toBe(avant);
   });
 
-  test('plonge vers le nœud cliqué, puis ouvre la page de la section', async ({ page }) => {
+  test('déploie l’étiquette cliquée en page : la transition relie le nœud au panneau de la section', async ({
+    page,
+  }) => {
+    // Enregistre, à chaque affichage d'une nouvelle page, s'il y a une transition et quel élément porte
+    // le nom « panneau » (lu juste après les scripts de la page, pendant la transition)
+    await page.addInitScript(() => {
+      window.addEventListener('pagereveal', (evenement) => {
+        const transition = (evenement as Event & { viewTransition?: unknown }).viewTransition;
+        setTimeout(() => {
+          const porteur = Array.from(document.querySelectorAll<HTMLElement>('*')).find(
+            (el) => getComputedStyle(el).viewTransitionName === 'panneau',
+          );
+          sessionStorage.setItem(
+            `transition:${location.pathname}`,
+            JSON.stringify({ transition: Boolean(transition), panneau: porteur?.closest('[data-noeud]')?.getAttribute('data-noeud') ?? porteur?.className ?? null }),
+          );
+        }, 0);
+      });
+    });
+    // En local, la page suivante répond en quelques millisecondes : plus vite que Chrome ne finit de capturer
+    // l'ancienne, et la transition est alors parfois sautée. Une latence réaliste (celle du réseau) l'évite.
+    await page.route(
+      (url) => url.pathname === '/' || url.pathname === sectionPath('fr', 'parcours'),
+      async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        await route.continue();
+      },
+    );
     await page.goto('/');
 
     // Le nœud bouge sans cesse : Playwright refuserait de cliquer sur un élément « instable »,
     // on lui envoie donc directement le clic (bouton gauche, sans touche de modification)
     await page.locator('[data-scene="large"] [data-noeud="parcours"]').dispatchEvent('click', { button: 0 });
-    // La plongée dure un peu moins d'une seconde : la scène grossit avant la navigation
-    await expect
-      .poll(() => page.locator('[data-scene="large"] [data-plateau]').evaluate((el: HTMLElement) => el.style.transform))
-      .toMatch(/scale\(/);
     await expect(page).toHaveURL(sectionPath('fr', 'parcours'));
     await expect(page.locator('h1')).toHaveText(t('fr', 'parcours.titre'));
+    await expect
+      .poll(async () => JSON.parse((await page.evaluate(() => sessionStorage.getItem('transition:/parcours/'))) ?? '{}'))
+      .toMatchObject({ transition: true, panneau: expect.stringMatching(/panneau/) });
+
+    // Retour au noyau : le panneau se replie dans l'étiquette du nœud « Parcours »
+    await page.locator('[data-retour-noyau]').click();
+    await expect(page).toHaveURL('/');
+    await expect
+      .poll(async () => JSON.parse((await page.evaluate(() => sessionStorage.getItem('transition:/'))) ?? '{}'))
+      .toEqual({ transition: true, panneau: 'parcours' });
   });
 
   test('met la rotation en pause et la reprend', async ({ page }) => {

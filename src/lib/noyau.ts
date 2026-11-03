@@ -25,6 +25,8 @@ export interface Gabarit {
 export const GABARITS = {
   large: { largeur: 1200, hauteur: 760, cx: 600, cy: 350, echelle: 76, echelleNoeuds: 1 },
   compact: { largeur: 400, hauteur: 440, cx: 200, cy: 215, echelle: 44, echelleNoeuds: 0.9 },
+  // Le noyau en arrière-plan des pages de section, en haut à droite
+  fond: { largeur: 640, hauteur: 560, cx: 390, cy: 230, echelle: 60, echelleNoeuds: 0.95 },
 } as const satisfies Record<string, Gabarit>;
 
 export type NomGabarit = keyof typeof GABARITS;
@@ -105,7 +107,7 @@ export function projeter(v: Vec3, g: Gabarit, echelle = g.echelle): Projete {
 
 const f = (n: number): string => n.toFixed(1);
 const segment = (p: Projete, q: Projete): string => `M${f(p.x)} ${f(p.y)}L${f(q.x)} ${f(q.y)}`;
-const cercle = (p: Projete, r: number): string =>
+export const cercle = (p: Projete, r: number): string =>
   `M${f(p.x - r)} ${f(p.y)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`;
 
 export interface FilDeFer {
@@ -277,4 +279,30 @@ export function calculerScene(g: Gabarit, o: Orientation): Scene {
 /** Balancement automatique, en radians, au temps `t` (secondes) : un aller-retour en une trentaine de secondes. */
 export function balancement(t: number): number {
   return 0.5 * Math.sin(t * 0.22);
+}
+
+/** Points des nœuds (sans étiquette) : tous ceux qui ne sont pas mis en avant, puis le nœud mis en avant. */
+export function pointsNoeuds(scene: Scene, enAvant?: NoeudId): { autres: string; enAvant: string } {
+  let autres = '';
+  let choisi = '';
+  for (const noeud of scene.noeuds) {
+    const trace = cercle({ x: noeud.x, y: noeud.y, k: 1 }, Math.round(6 + noeud.profondeur * 8) / 2);
+    if (noeud.id === enAvant) choisi += cercle({ x: noeud.x, y: noeud.y, k: 1 }, 7);
+    else autres += trace;
+  }
+  return { autres, enAvant: choisi };
+}
+
+/**
+ * Ligne qui part du noyau vers le bas à gauche et sort du cadre : sur une page de section, elle relie
+ * le noyau du fond au panneau de la page.
+ */
+export function liaisonVersPanneau(g: Gabarit): string {
+  const direction: Vec3 = [-1, 0.55, 0.35];
+  const longueur = Math.hypot(...direction);
+  const ancre = projeter(
+    [(direction[0] * RAYON_ANCRAGE) / longueur, (direction[1] * RAYON_ANCRAGE) / longueur, (direction[2] * RAYON_ANCRAGE) / longueur],
+    g,
+  );
+  return `M${f(ancre.x)} ${f(ancre.y)}L${f(-g.largeur * 0.1)} ${f(g.hauteur * 0.9)}`;
 }

@@ -157,21 +157,41 @@ a:hover {
   color: var(--text-3);
 }
 
-/* Les pages de section apparaissent en glissant, comme à la sortie de la plongée depuis le noyau */
-@media (prefers-reduced-motion: no-preference) {
-  .apparition {
-    animation: apparition 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
+/* Transitions entre pages (spec 2026-11-02 §3) : l'étiquette du nœud cliqué se déploie jusqu'à devenir le
+   panneau de la page (« panneau »), son titre devient le grand titre (« titre »), et le noyau de l'accueil
+   glisse en haut à droite (« noyau »). En-tête et pied de page restent en place. Les navigateurs sans
+   transitions entre documents (Firefox aujourd'hui) changent simplement de page. */
+@view-transition {
+  navigation: auto;
+}
 
-  @keyframes apparition {
-    from {
-      opacity: 0;
-      transform: translateY(24px);
-    }
-  }
+::view-transition-group(panneau),
+::view-transition-group(titre),
+::view-transition-group(noyau) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Le contenu de l'étiquette s'efface vite, celui de la page arrive une fois le panneau presque déployé */
+::view-transition-old(panneau) {
+  animation-duration: 0.2s;
+}
+
+::view-transition-new(panneau) {
+  animation-delay: 0.2s;
+  animation-duration: 0.4s;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+
   *,
   *::before,
   *::after {

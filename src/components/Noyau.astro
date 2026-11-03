@@ -18,7 +18,7 @@ import {
   type NomGabarit,
   type PlacementNoeud,
 } from '../lib/noyau';
-import { numeroSection, sectionPath } from '../lib/routes';
+import { SECTIONS, numeroSection, sectionPath } from '../lib/routes';
 import { statut } from '../lib/statut';
 
 interface Props {
@@ -99,6 +99,12 @@ function styleNoeud(n: PlacementNoeud, nom: NomGabarit): string {
     `z-index: ${ordreEmpilement(n.z)}`,
   ].join('; ');
 }
+
+// Pour le script en ligne de retour : chaque page de section (dans les deux langues) et son nœud
+const sectionsParChemin = Object.fromEntries(
+  (['fr', 'en'] as const).flatMap((langue) => SECTIONS.map((section) => [sectionPath(langue, section), section])),
+);
+const segmentsProjets = [sectionPath('fr', 'projets'), sectionPath('en', 'projets')];
 
 const scenes = (['large', 'compact'] as const).map((nom) => {
   const g = GABARITS[nom];
@@ -188,13 +194,13 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     ))
   }
 
-  <section class="presentation" data-fondu>
+  <section class="presentation">
     <p class="surtitre">{t(lang, 'hero.surtitre')}</p>
     <h1>{profil.nom}</h1>
     <p class="accroche">{t(lang, 'hero.accroche')}</p>
   </section>
 
-  <nav class="liste" aria-label={t(lang, 'nav.label')} data-fondu>
+  <nav class="liste" aria-label={t(lang, 'nav.label')}>
     {
       NOEUDS.map((id) => (
         <a class:list={['ligne', { 'ligne--statut': id === 'statut' }]} href={libelles[id].href}>
@@ -211,7 +217,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     }
   </nav>
 
-  <div class="commandes" data-fondu>
+  <div class="commandes">
     <span class="aide" aria-hidden="true">{t(lang, 'noyau.aide')}</span>
     <button
       type="button"
@@ -228,38 +234,17 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 </div>
 
 <script>
-  import {
-    GABARITS,
-    balancement,
-    calculerScene,
-    orientationVers,
-    type NoeudId,
-    type NomGabarit,
-    type Orientation,
-    type Scene,
-  } from '../lib/noyau';
+  import { GABARITS, balancement, calculerScene, type NoeudId, type NomGabarit, type Orientation, type Scene } from '../lib/noyau';
 
   interface VueScene {
     el: HTMLElement;
-    plateau: HTMLElement;
     nom: NomGabarit;
     traces: Map<string, SVGPathElement>;
     noeuds: Map<NoeudId, HTMLAnchorElement>;
   }
 
-  interface Plongee {
-    vue: VueScene;
-    id: NoeudId;
-    href: string;
-    debut: number;
-    depart: Orientation;
-    cible: Orientation;
-  }
-
-  const DUREE_PLONGEE = 950;
   // Amorti : la part de l'écart rattrapée en 40 ms (rendue indépendante de la cadence d'affichage)
   const AMORTI = 0.07;
-  const AMORTI_PLONGEE = 0.14;
 
   const racine = document.querySelector<HTMLElement>('[data-accueil]');
   if (racine) demarrer(racine);
@@ -268,7 +253,6 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
     const vues: VueScene[] = Array.from(racine.querySelectorAll<HTMLElement>('[data-scene]')).map((el) => ({
       el,
-      plateau: el.querySelector<HTMLElement>('[data-plateau]') as HTMLElement,
       nom: el.dataset.scene as NomGabarit,
       traces: new Map(
         Array.from(el.querySelectorAll<SVGPathElement>('[data-trace]')).map((p) => [p.dataset.trace as string, p]),
@@ -277,16 +261,16 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
         Array.from(el.querySelectorAll<HTMLAnchorElement>('[data-noeud]')).map((a) => [a.dataset.noeud as NoeudId, a]),
       ),
     }));
-    const fondus = Array.from(racine.querySelectorAll<HTMLElement>('[data-fondu]'));
     const bouton = racine.querySelector<HTMLButtonElement>('[data-pause]');
 
     let orientation: Orientation = { yaw: 0, pitch: 0 };
     let temps = 0;
     let enPause = mouvementReduit.matches;
     let souris: { x: number; y: number } | null = null;
-    let plongee: Plongee | null = null;
     let precedent = performance.now();
     let boucle = 0;
+    // Figée au clic sur un nœud : la scène ne bouge plus pendant que le navigateur la capture pour la transition
+    let figee = false;
 
     const visible = (vue: VueScene) => vue.el.offsetParent !== null;
 
@@ -322,20 +306,13 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     }
 
     const tout = () => vues.filter(visible).forEach(dessiner);
-
     const rapprocher = (de: number, vers: number, part: number) => de + (vers - de) * part;
-    const lisser = (x: number) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
 
     function image(maintenant: number) {
       const dt = Math.min(0.05, (maintenant - precedent) / 1000);
       precedent = maintenant;
       boucle = 0;
-
-      if (plongee) {
-        avancerPlongee(plongee, maintenant, dt);
-        return;
-      }
-      if (enPause) return;
+      if (enPause || figee) return;
 
       temps += dt;
       const cible: Orientation = souris
@@ -352,41 +329,6 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
 
     function relancer() {
       if (boucle === 0) boucle = requestAnimationFrame(image);
-    }
-
-    function avancerPlongee(p: Plongee, maintenant: number, dt: number) {
-      const avancement = Math.min(1, (maintenant - p.debut) / DUREE_PLONGEE);
-      const part = 1 - (1 - AMORTI_PLONGEE) ** (dt / 0.04);
-      orientation = {
-        yaw: rapprocher(orientation.yaw, p.cible.yaw, part),
-        pitch: rapprocher(orientation.pitch, p.cible.pitch, part),
-      };
-      dessiner(p.vue);
-
-      // La caméra plonge vers le nœud : le zoom accélère, puis la scène s'efface
-      const lisse = lisser(avancement);
-      const lien = p.vue.noeuds.get(p.id);
-      if (lien) p.vue.plateau.style.transformOrigin = `${lien.style.left} ${lien.style.top}`;
-      p.vue.plateau.style.transform = `scale(${(1 + lisse * lisse * 6).toFixed(3)})`;
-      p.vue.plateau.style.opacity = String(1 - Math.min(1, Math.max(0, (avancement - 0.5) / 0.35)));
-      const fondu = String(1 - Math.min(1, avancement * 2.5));
-      for (const el of fondus) el.style.opacity = fondu;
-
-      if (avancement >= 1) {
-        window.location.assign(p.href);
-        return;
-      }
-      relancer();
-    }
-
-    function reinitialiser() {
-      plongee = null;
-      for (const vue of vues) {
-        vue.plateau.style.transform = '';
-        vue.plateau.style.opacity = '';
-      }
-      for (const el of fondus) el.style.opacity = '';
-      tout();
     }
 
     function majBouton() {
@@ -418,41 +360,26 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
       souris = null;
     });
 
+    // Au clic, l'étiquette du nœud devient le panneau de la page (transition entre pages, voir global.css) :
+    // elle prend les noms que portent, sur la page de la section, le panneau et le grand titre.
     for (const vue of vues) {
-      for (const [id, lien] of vue.noeuds) {
+      for (const lien of vue.noeuds.values()) {
         lien.addEventListener('click', (evenement) => {
-          // Nouvel onglet, téléchargement, mouvement réduit ou pause : le lien garde son comportement normal
-          if (
-            evenement.defaultPrevented ||
-            evenement.button !== 0 ||
-            evenement.metaKey ||
-            evenement.ctrlKey ||
-            evenement.shiftKey ||
-            evenement.altKey ||
-            mouvementReduit.matches ||
-            enPause ||
-            plongee
-          ) {
-            return;
-          }
-          evenement.preventDefault();
-          plongee = {
-            vue,
-            id,
-            href: lien.href,
-            debut: performance.now(),
-            depart: { ...orientation },
-            cible: orientationVers(id),
-          };
-          relancer();
+          if (evenement.defaultPrevented || evenement.button !== 0) return;
+          if (evenement.metaKey || evenement.ctrlKey || evenement.shiftKey || evenement.altKey) return;
+          figee = true;
+          cancelAnimationFrame(boucle);
+          boucle = 0;
+          nommer(lien);
         });
       }
     }
 
-    // Retour arrière depuis une section (cache du navigateur) : la scène repart de zéro
+    // Retour arrière (cache du navigateur) : les noms posés au clic ne doivent pas rester
     window.addEventListener('pageshow', (evenement) => {
       if (!evenement.persisted) return;
-      reinitialiser();
+      figee = false;
+      effacerNoms();
       precedent = performance.now();
       relancer();
     });
@@ -466,6 +393,52 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     tout();
     relancer();
   }
+
+  function nommer(lien: HTMLElement) {
+    effacerNoms();
+    const carte = lien.querySelector<HTMLElement>('.noeud-carte');
+    const titre = lien.querySelector<HTMLElement>('.noeud-titre');
+    if (carte) carte.style.viewTransitionName = 'panneau';
+    if (titre) titre.style.viewTransitionName = 'titre';
+  }
+
+  function effacerNoms() {
+    document.querySelectorAll<HTMLElement>('.noeud-carte, .noeud-titre').forEach((el) => {
+      el.style.viewTransitionName = '';
+    });
+  }
+</script>
+
+<script is:inline define:vars={{ sectionsParChemin, segmentsProjets }}>
+  // Retour sur l'accueil depuis une section : le panneau de la page se replie dans l'étiquette de son nœud.
+  // Ce script est en ligne (pas de module) pour s'inscrire avant le premier affichage, où le navigateur
+  // lit les noms de transition de la nouvelle page.
+  window.addEventListener('pagereveal', function (evenement) {
+    var transition = evenement.viewTransition;
+    var activation = window.navigation && window.navigation.activation;
+    if (!transition || !activation || !activation.from) return;
+    var chemin = new URL(activation.from.url).pathname;
+    var section = sectionsParChemin[chemin];
+    if (!section && segmentsProjets.some(function (prefixe) { return chemin.indexOf(prefixe) === 0; })) {
+      section = 'projets';
+    }
+    if (!section) return;
+    var gabarit = window.matchMedia('(min-width: 761px)').matches ? 'large' : 'compact';
+    var lien = document.querySelector('[data-scene="' + gabarit + '"] [data-noeud="' + section + '"]');
+    if (!lien) return;
+    var elements = [
+      [lien.querySelector('.noeud-carte'), 'panneau'],
+      [lien.querySelector('.noeud-titre'), 'titre'],
+    ];
+    elements.forEach(function (paire) {
+      if (paire[0]) paire[0].style.viewTransitionName = paire[1];
+    });
+    transition.finished.finally(function () {
+      elements.forEach(function (paire) {
+        if (paire[0]) paire[0].style.viewTransitionName = '';
+      });
+    });
+  });
 </script>
 
 <style>
@@ -486,7 +459,11 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
   .plateau {
     position: absolute;
     inset: 0;
-    will-change: transform;
+  }
+
+  /* Le dessin du noyau glisse jusqu'au noyau du fond des pages de section (transition entre pages) */
+  .trace {
+    view-transition-name: noyau;
   }
 
   .trace {

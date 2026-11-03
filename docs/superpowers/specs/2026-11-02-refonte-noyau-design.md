@@ -40,9 +40,12 @@ filtre, e-mail protégé, aucune donnée sensible, aucun cookie ni statistique, 
   et plus pâle, un nœud de devant plus gros, avec un halo. Chaque nœud est un vrai lien.
 - Animation : l'ensemble (noyau, nœuds, anneaux) fait des allers-retours de rotation ; à la souris, il se
   tourne vers le curseur, avec un amorti, puis reprend son balancement quand la souris sort.
-- Clic sur un nœud : l'objet pivote pour présenter le nœud, la caméra plonge vers lui, puis la page de la
-  section s'ouvre et son contenu apparaît en glissant. Ctrl ou Cmd + clic et clic du milieu gardent le
-  comportement normal du navigateur.
+- Clic sur un nœud (révisé le 2026-11-03, à la place d'un zoom de caméra) : l'étiquette du nœud se déploie
+  jusqu'à devenir le panneau de la page, son titre devient le grand titre, et le noyau glisse en haut à
+  droite, où il continue de tourner derrière la page. Le retour au noyau fait l'inverse. C'est une
+  transition entre vraies pages (View Transitions entre documents : noms `panneau`, `titre`, `noyau`,
+  `entete`, `pied`) ; les navigateurs qui ne la gèrent pas changent simplement de page. Ctrl ou Cmd + clic
+  et clic du milieu gardent le comportement normal du navigateur.
 - Bouton pause. Avec `prefers-reduced-motion`, rien ne bouge et un clic ouvre la page directement.
   Sans JavaScript, la scène est rendue fixe côté serveur et les liens fonctionnent.
 - Deux gabarits : large (ordinateur, étiquettes complètes) et compact (téléphone, numéros seuls, puis la
@@ -52,7 +55,9 @@ filtre, e-mail protégé, aucune donnée sensible, aucun cookie ni statistique, 
 
 ## 4. Pages de section
 
-En-tête commun : icône du noyau et fil d'Ariane (« MD / 01 · Projets »), navigation entre sections avec
+Chaque page de section est un panneau posé dans l'espace du noyau : le noyau tourne lentement en fond,
+en haut à droite (décoratif, masqué aux lecteurs d'écran, absent à l'impression), relié au panneau par une
+ligne. En-tête commun : icône du noyau et fil d'Ariane (« MD / 01 · Projets »), navigation entre sections avec
 la page courante marquée, sélecteur FR/EN. Chaque page commence par « ← Retour au noyau », un repère
 (point, trait, « 01 · PROJETS »), un grand titre et une phrase d'introduction, et se termine par un lien
 vers la section suivante.

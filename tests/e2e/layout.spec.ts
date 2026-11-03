@@ -192,6 +192,13 @@ test.describe('pages de section', () => {
         // Le repère de la page : « 02 · Parcours », et le retour au noyau
         await expect(page.locator('main')).toContainText(`${numeroSection(section)} · ${t(lang, `nav.${section}`)}`);
         await expect(page.locator('[data-retour-noyau]')).toHaveAttribute('href', lang === 'fr' ? '/' : '/en/');
+
+        // La page est un panneau posé dans l'espace du noyau, qui tourne en fond (décor masqué et inerte)
+        await expect(page.locator('.panneau')).toHaveCSS('view-transition-name', 'panneau');
+        const fond = page.locator('[data-noyau-fond]');
+        await expect(fond).toHaveAttribute('aria-hidden', 'true');
+        await expect(fond).toHaveCSS('pointer-events', 'none');
+        await expect(fond).toHaveAttribute('data-noeud-courant', section);
       });
     }
   }

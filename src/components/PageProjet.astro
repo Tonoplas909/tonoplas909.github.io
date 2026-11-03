@@ -5,6 +5,7 @@ import { remplir, t } from '../i18n/ui';
 import { voisins } from '../lib/projets';
 import { projectPath, sectionPath } from '../lib/routes';
 import Galerie from './Galerie.astro';
+import NoyauFond from './NoyauFond.astro';
 
 interface Props {
   lang: Lang;
@@ -29,7 +30,10 @@ const autres = [
 ] as const;
 ---
 
-<article class="container projet apparition">
+<NoyauFond noeud="projets" />
+
+<article class="container projet">
+  <div class="panneau">
   <div class="haut">
     <a class="retour" href={sectionPath(lang, 'projets')} data-projet-retour>
       <span aria-hidden="true">←</span>{' '}{t(lang, 'projet.retour')}
@@ -105,15 +109,33 @@ const autres = [
       ))
     }
   </nav>
+  </div>
 </article>
 
 <style>
   .projet {
+    position: relative;
+    z-index: 1;
+    padding-top: 32px;
+    padding-bottom: 64px;
+  }
+
+  /* Le panneau de la page, posé dans l'espace du noyau (même gabarit que les pages de section) */
+  .panneau {
     display: flex;
     flex-direction: column;
     gap: 40px;
-    padding-top: 32px;
-    padding-bottom: 64px;
+    padding: 40px 48px 48px;
+    background: rgba(8, 12, 18, 0.9);
+    border: 1px solid rgba(124, 247, 255, 0.3);
+    border-radius: var(--radius);
+    view-transition-name: panneau;
+  }
+
+  @media (min-width: 1280px) {
+    .panneau {
+      max-width: calc(100% - 200px);
+    }
   }
 
   .haut {
@@ -194,6 +216,7 @@ const autres = [
   }
 
   h1 {
+    view-transition-name: titre;
     margin: 0;
     font-family: var(--font-display);
     font-size: clamp(48px, 9vw, 136px);
@@ -340,8 +363,12 @@ const autres = [
 
   @media (max-width: 760px) {
     .projet {
-      gap: 28px;
       padding-top: 20px;
+    }
+
+    .panneau {
+      gap: 28px;
+      padding: 20px 16px 28px;
     }
 
     .cote {
