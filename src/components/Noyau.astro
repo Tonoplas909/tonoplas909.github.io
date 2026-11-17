@@ -84,7 +84,8 @@ const libelles: Record<NoeudId, Libelle> = {
   },
 };
 
-/** Ordre d'empilement d'un nœud : toujours positif (au-dessus du dessin), plus grand devant. */
+/** Ordre d'empilement d'un nœud : sous le noyau (30) s'il est derrière, au-dessus s'il est devant, toujours
+ * au-dessus du décor (0). */
 const ordreEmpilement = (z: number) => Math.round(30 + z * 5);
 
 const pourcent = (valeur: number, total: number) => `${((valeur / total) * 100).toFixed(2)}%`;
@@ -118,7 +119,9 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     scenes.map(({ nom, g, scene, sol, pied }) => (
       <div class={`scene scene--${nom}`} data-scene={nom} style={`aspect-ratio: ${g.largeur} / ${g.hauteur}`}>
         <div class="plateau" data-plateau>
-          <svg class="trace" viewBox={`0 0 ${g.largeur} ${g.hauteur}`} aria-hidden="true">
+          {/* Deux calques : le décor (sol, ombre, anneaux et liens du fond) passe sous tous les nœuds ; le noyau
+              est au plan de profondeur 0, entre les nœuds du fond et ceux de devant (voir ordreEmpilement) */}
+          <svg class="trace trace--decor" viewBox={`0 0 ${g.largeur} ${g.hauteur}`} aria-hidden="true">
             <defs>
               <linearGradient
                 id={`fondu-${nom}`}
@@ -142,6 +145,13 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
             <circle cx={g.cx} cy={g.cy} r={g.echelle * 3} fill={`url(#halo-${nom})`} />
             <path d={scene.anneaux.arriere} class="t-anneau-arriere" data-trace="anneaux.arriere" />
             <path d={scene.liens.arriere} class="t-lien-arriere" data-trace="liens.arriere" />
+          </svg>
+          <svg
+            class="trace trace--noyau"
+            data-couche="noyau"
+            viewBox={`0 0 ${g.largeur} ${g.hauteur}`}
+            aria-hidden="true"
+          >
             <path d={scene.noyau.arriere} class="t-noyau-arriere" data-trace="noyau.arriere" />
             <path d={scene.interieur.avant} class="t-interieur" data-trace="interieur.avant" />
             <path d={scene.noyau.avant} class="t-noyau-avant" data-trace="noyau.avant" />
@@ -299,7 +309,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
         lien.style.left = `${((n.x / g.largeur) * 100).toFixed(2)}%`;
         lien.style.top = `${((n.y / g.hauteur) * 100).toFixed(2)}%`;
         lien.style.setProperty('--p', n.profondeur.toFixed(3));
-        // Toujours positif : un nœud du fond doit rester au-dessus du dessin SVG, donc cliquable
+        // Derrière le noyau (30) si le nœud est au fond, devant sinon ; le noyau laisse passer les clics
         lien.style.zIndex = String(Math.round(30 + n.z * 5));
         lien.classList.toggle('noeud--gauche', n.x < g.cx);
       }
@@ -398,6 +408,8 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     effacerNoms();
     const carte = lien.querySelector<HTMLElement>('.noeud-carte');
     const titre = lien.querySelector<HTMLElement>('.noeud-titre');
+    // L'étiquette qui se déploie passe devant le noyau, même si son nœud est derrière
+    lien.classList.add('noeud--deploye');
     if (carte) carte.style.viewTransitionName = 'panneau';
     if (titre) titre.style.viewTransitionName = 'titre';
   }
@@ -406,6 +418,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     document.querySelectorAll<HTMLElement>('.noeud-carte, .noeud-titre').forEach((el) => {
       el.style.viewTransitionName = '';
     });
+    document.querySelectorAll('.noeud--deploye').forEach((el) => el.classList.remove('noeud--deploye'));
   }
 </script>
 
@@ -430,10 +443,12 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
       [lien.querySelector('.noeud-carte'), 'panneau'],
       [lien.querySelector('.noeud-titre'), 'titre'],
     ];
+    lien.classList.add('noeud--deploye');
     elements.forEach(function (paire) {
       if (paire[0]) paire[0].style.viewTransitionName = paire[1];
     });
     transition.finished.finally(function () {
+      lien.classList.remove('noeud--deploye');
       elements.forEach(function (paire) {
         if (paire[0]) paire[0].style.viewTransitionName = '';
       });
@@ -461,8 +476,18 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     inset: 0;
   }
 
-  /* Le dessin du noyau glisse jusqu'au noyau du fond des pages de section (transition entre pages) */
-  .trace {
+  /* Nommé lui aussi : pendant la transition, il s'efface sur place au lieu d'alourdir la capture de la page
+     (sans ce nom, Chrome sautait la transition une fois sur deux) */
+  .trace--decor {
+    z-index: 0;
+    view-transition-name: noyau-decor;
+  }
+
+  /* Le noyau, au plan de profondeur 0. Il glisse jusqu'au noyau du fond des pages de section (transition
+     entre pages) et laisse passer les clics vers les nœuds cachés derrière lui. */
+  .trace--noyau {
+    z-index: 30;
+    pointer-events: none;
     view-transition-name: noyau;
   }
 
@@ -551,6 +576,7 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     font-weight: 800;
     letter-spacing: 0.04em;
     pointer-events: none;
+    z-index: 30;
   }
 
   /* Nœuds : un point (dont la taille suit la profondeur --p) et une carte à côté */
@@ -611,6 +637,14 @@ const scenes = (['large', 'compact'] as const).map((nom) => {
     right: calc(100% + 12px);
     align-items: flex-end;
     text-align: right;
+  }
+
+  /* Survolé ou focalisé, un nœud du fond passe devant le noyau : son étiquette et son focus restent lisibles.
+     Pendant la transition (noeud--deploye), l'étiquette qui devient la page passe devant aussi. */
+  .noeud:hover,
+  .noeud:focus-visible,
+  .noeud--deploye {
+    z-index: 60 !important;
   }
 
   .noeud:hover .noeud-carte,

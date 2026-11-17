@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { profil } from '../../src/data/profil';
 import { projets } from '../../src/data/projets';
 import { t } from '../../src/i18n/ui';
-import { NOEUDS } from '../../src/lib/noyau';
+import { GABARITS, NOEUDS, calculerScene } from '../../src/lib/noyau';
 import { sectionPath } from '../../src/lib/routes';
 import { statut } from '../../src/lib/statut';
 
@@ -157,6 +157,24 @@ test.describe('accueil avec mouvement réduit', () => {
     );
     await page.locator('[data-scene="large"] [data-noeud="cv"]').click();
     await expect(page).toHaveURL(sectionPath('fr', 'cv'));
+  });
+
+  test('passe les étiquettes des nœuds du fond derrière le noyau, celles de devant au-dessus', async ({ page }) => {
+    await page.goto('/');
+    const scene = calculerScene(GABARITS.large, { yaw: 0, pitch: 0 });
+    const plan = (selecteur: string) =>
+      page.locator(selecteur).evaluate((el) => Number(getComputedStyle(el).zIndex));
+    const noyau = await plan('[data-scene="large"] [data-couche="noyau"]');
+
+    for (const n of scene.noeuds) {
+      const noeud = await plan(`[data-scene="large"] [data-noeud="${n.id}"]`);
+      if (n.z < 0) expect(noeud, `${n.id} (z = ${n.z.toFixed(2)})`).toBeLessThan(noyau);
+      else expect(noeud, `${n.id} (z = ${n.z.toFixed(2)})`).toBeGreaterThan(noyau);
+    }
+    // Le noyau ne capte pas les clics : un nœud du fond, même caché derrière, reste cliquable
+    const fond = scene.noeuds.find((n) => n.z < 0)!;
+    await page.locator(`[data-scene="large"] [data-noeud="${fond.id}"]`).click();
+    await expect(page).toHaveURL(new RegExp(sectionPath('fr', fond.id === 'statut' ? 'contact' : fond.id)));
   });
 });
 

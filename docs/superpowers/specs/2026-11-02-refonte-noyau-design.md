@@ -38,6 +38,10 @@ filtre, e-mail protégé, aucune donnée sensible, aucun cookie ni statistique, 
 - Six nœuds placés en 3D (devant, derrière, sur les côtés), reliés au noyau par une ligne : 01 Projets,
   02 Parcours, 03 Compétences, 04 CV, 05 Contact, et le statut en orange. Un nœud du fond est plus petit
   et plus pâle, un nœud de devant plus gros, avec un halo. Chaque nœud est un vrai lien.
+- Profondeur (révisé le 2026-11-17) : le dessin est en deux calques. Le décor (sol, ombre, anneaux et liens
+  du fond) passe sous tous les nœuds ; le noyau est au plan de profondeur 0, si bien que l'étiquette d'un
+  nœud du fond passe derrière lui, et celle d'un nœud de devant au-dessus. Le noyau laisse passer les clics ;
+  un nœud survolé, focalisé ou en train de se déployer en page passe au premier plan.
 - Animation : l'ensemble (noyau, nœuds, anneaux) fait des allers-retours de rotation ; à la souris, il se
   tourne vers le curseur, avec un amorti, puis reprend son balancement quand la souris sort.
 - Clic sur un nœud (révisé le 2026-11-03, à la place d'un zoom de caméra) : l'étiquette du nœud se déploie
